@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>課程音檔教材庫</title>
+    <style>
+        body { font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; padding: 20px; line-height: 1.6; background-color: #f0f2f5; }
+        .container { max-width: 500px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        h2 { color: #1a73e8; text-align: center; margin-bottom: 25px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; color: #5f6368; }
+        select { width: 100%; padding: 12px; border: 2px solid #dadce0; border-radius: 8px; font-size: 16px; appearance: none; background: url('data:image/svg+xml;charset=US-ASCII,<svg%20xmlns%3D"http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg"%20width%3D"24"%20height%3D"24"%20viewBox%3D"0%200%2024%2024"><path%20fill%3D"%235F6368"%20d%3D"M7%2010l5%205%205-5z"%2F><%2Fsvg>') no-repeat right 10px center; background-color: white; }
+        select:focus { outline: none; border-color: #1a73e8; }
+        select:disabled { background-color: #f1f3f4; cursor: not-allowed; }
+        .audio-player { margin-top: 30px; text-align: center; display: none; padding: 20px; background: #e8f0fe; border-radius: 10px; }
+        #audioTitle { font-weight: bold; color: #1967d2; display: block; margin-bottom: 10px; }
+        audio { width: 100%; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>📖 課程音檔選單</h2>
+
+    <div class="form-group">
+        <label for="weekSelect">1. 選擇週次 (Week)</label>
+        <select id="weekSelect">
+            <option value="">-- 請選擇 --</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="unitSelect">2. 選擇單元 (Unit)</label>
+        <select id="unitSelect" disabled>
+            <option value="">-- 請先選擇週次 --</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="audioSelect">3. 選擇內容類型</label>
+        <select id="audioSelect" disabled>
+            <option value="">-- 請先選擇單元 --</option>
+        </select>
+    </div>
+
+    <div id="playerSection" class="audio-player">
+        <span id="audioTitle"></span>
+        <audio id="mainAudio" controls>
+            <source src="" type="audio/mpeg">
+            您的瀏覽器不支援音頻播放。
+        </audio>
+    </div>
+</div>
+
+<script>
+    const weekSelect = document.getElementById('weekSelect');
+    const unitSelect = document.getElementById('unitSelect');
+    const audioSelect = document.getElementById('audioSelect');
+    const playerSection = document.getElementById('playerSection');
+    const mainAudio = document.getElementById('mainAudio');
+    const audioTitle = document.getElementById('audioTitle');
+
+    // 格式化數字為兩位數 (如 1 變成 01)
+    function pad(num) {
+        return num.toString().padStart(2, '0');
+    }
+
+    // 1. 初始化 18 週
+    for (let i = 1; i <= 18; i++) {
+        let opt = document.createElement('option');
+        opt.value = i;
+        opt.innerHTML = `第 ${i} 週`;
+        weekSelect.appendChild(opt);
+    }
+
+    // 2. 週次變動
+    weekSelect.addEventListener('change', function() {
+        unitSelect.innerHTML = '<option value="">-- 請選擇單元 --</option>';
+        audioSelect.innerHTML = '<option value="">-- 請先選擇單元 --</option>';
+        audioSelect.disabled = true;
+        playerSection.style.display = 'none';
+
+        if (this.value) {
+            unitSelect.disabled = false;
+            const weekNum = parseInt(this.value);
+            for (let i = 1; i <= 2; i++) {
+                let unitNum = (weekNum - 1) * 2 + i;
+                let opt = document.createElement('option');
+                opt.value = unitNum;
+                opt.innerHTML = `Unit ${unitNum}`;
+                unitSelect.appendChild(opt);
+            }
+        } else {
+            unitSelect.disabled = true;
+        }
+    });
+
+    // 3. 單元變動 (計算 Book1_XX.mp3)
+    unitSelect.addEventListener('change', function() {
+        audioSelect.innerHTML = '<option value="">-- 請選擇類型 --</option>';
+        if (this.value) {
+            audioSelect.disabled = false;
+            const unitNum = parseInt(this.value);
+            
+            // 計算規則：
+            // 造句單元 = (Unit編號 * 2) - 1
+            // 附錄字表 = (Unit編號 * 2)
+            const sentenceIdx = pad((unitNum * 2) - 1);
+            const wordIdx = pad(unitNum * 2);
+
+            let opt1 = document.createElement('option');
+            opt1.value = `Book1_${sentenceIdx}.mp3`;
+            opt1.innerHTML = `Unit ${unitNum} 造句單元 (檔案: ${opt1.value})`;
+            audioSelect.appendChild(opt1);
+
+            let opt2 = document.createElement('option');
+            opt2.value = `Book1_${wordIdx}.mp3`;
+            opt2.innerHTML = `Unit ${unitNum} 附錄字表 (檔案: ${opt2.value})`;
+            audioSelect.appendChild(opt2);
+        } else {
+            audioSelect.disabled = true;
+        }
+    });
+
+    // 4. 播放
+    audioSelect.addEventListener('change', function() {
+        if (this.value) {
+            audioTitle.innerText = this.options[this.selectedIndex].text;
+            mainAudio.src = this.value;
+            playerSection.style.display = 'block';
+            mainAudio.load();
+        }
+    });
+</script>
+
+</body>
+</html>
