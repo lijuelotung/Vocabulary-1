@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>課程音檔教材庫</title>
+    <title>單字 強咖這樣背Book 1</title>
     <style>
         body { font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; padding: 20px; line-height: 1.6; background-color: #f0f2f5; }
         .container { max-width: 500px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
@@ -21,7 +21,7 @@
 <body>
 
 <div class="container">
-    <h2>📖 課程音檔選單</h2>
+    <h2>📖 單字 強咖這樣背Book 1</h2>
 
     <div class="form-group">
         <label for="weekSelect">1. 選擇週次 (Week)</label>
@@ -66,78 +66,4 @@
     const audioSelect = document.getElementById('audioSelect');
     const playerSection = document.getElementById('playerSection');
     const mainAudio = document.getElementById('mainAudio');
-    const audioTitle = document.getElementById('audioTitle');
-
-    // 格式化數字為兩位數
-    function pad(num) {
-        return num.toString().padStart(2, '0');
-    }
-
-    // 1. 初始化 18 週
-    for (let i = 1; i <= 18; i++) {
-        let opt = document.createElement('option');
-        opt.value = i;
-        opt.innerHTML = `第 ${i} 週`;
-        weekSelect.appendChild(opt);
-    }
-
-    // 2. 週次變動
-    weekSelect.addEventListener('change', function() {
-        unitSelect.innerHTML = '<option value="">-- 請選擇單元 --</option>';
-        audioSelect.innerHTML = '<option value="">-- 請先選擇單元 --</option>';
-        audioSelect.disabled = true;
-        playerSection.style.display = 'none';
-
-        if (this.value) {
-            unitSelect.disabled = false;
-            const weekNum = parseInt(this.value);
-            for (let i = 1; i <= 2; i++) {
-                let unitNum = (weekNum - 1) * 2 + i;
-                let opt = document.createElement('option');
-                opt.value = unitNum;
-                opt.innerHTML = `Unit ${unitNum}`;
-                unitSelect.appendChild(opt);
-            }
-        } else {
-            unitSelect.disabled = true;
-        }
-    });
-
-    // 3. 單元變動 (計算 Book1_XX.mp3)
-    unitSelect.addEventListener('change', function() {
-        audioSelect.innerHTML = '<option value="">-- 請選擇類型 --</option>';
-        if (this.value) {
-            audioSelect.disabled = false;
-            const unitNum = parseInt(this.value);
-            
-            const sentenceIdx = pad((unitNum * 2) - 1);
-            const wordIdx = pad(unitNum * 2);
-
-            let opt1 = document.createElement('option');
-            opt1.value = `Book1_${sentenceIdx}.mp3`;
-            opt1.innerHTML = `Unit ${unitNum} 造句單元`;
-            audioSelect.appendChild(opt1);
-
-            let opt2 = document.createElement('option');
-            opt2.value = `Book1_${wordIdx}.mp3`;
-            opt2.innerHTML = `Unit ${unitNum} 附錄字表`;
-            audioSelect.appendChild(opt2);
-        } else {
-            audioSelect.disabled = true;
-        }
-    });
-
-    // 4. 播放
-    audioSelect.addEventListener('change', function() {
-        if (this.value) {
-            audioTitle.innerText = this.options[this.selectedIndex].text;
-            mainAudio.src = this.value;
-            playerSection.style.display = 'block';
-            mainAudio.load();
-            mainAudio.play(); // 選中後自動播放
-        }
-    });
-</script>
-
-</body>
-</html>
+    const audioTitle = document
