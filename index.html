@@ -2,12 +2,36 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>單字 強咖這樣背Book 1</title>
+    <title>課程音檔教材庫</title>
     <style>
         body { font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; padding: 20px; line-height: 1.6; background-color: #f0f2f5; }
         .container { max-width: 500px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
-        h2 { color: #1a73e8; text-align: center; margin-bottom: 25px; }
+        
+        h2 { 
+            color: #1a73e8; 
+            text-align: center; 
+            margin-bottom: 25px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 10px; 
+        }
+
+        .header-logo {
+            height: 1.5em; 
+            width: auto;   
+            vertical-align: middle; 
+        }
+
+        /* 新增：封面圖片樣式 */
+        .book-cover {
+            height: 2.5em; /* 稍微大一點，看起來更明顯 */
+            width: auto;
+            border-radius: 4px;
+            display: none; /* 預設隱藏 */
+            transition: opacity 0.3s ease;
+        }
+
         .form-group { margin-bottom: 20px; }
         label { display: block; margin-bottom: 8px; font-weight: bold; color: #5f6368; }
         select { width: 100%; padding: 12px; border: 2px solid #dadce0; border-radius: 8px; font-size: 16px; appearance: none; background: url('data:image/svg+xml;charset=US-ASCII,<svg%20xmlns%3D"http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg"%20width%3D"24"%20height%3D"24"%20viewBox%3D"0%200%2024%2024"><path%20fill%3D"%235F6368"%20d%3D"M7%2010l5%205%205-5z"%2F><%2Fsvg>') no-repeat right 10px center; background-color: white; }
@@ -22,24 +46,38 @@
 <body>
 
 <div class="container">
-    <h2>📖 單字 強咖這樣背Book 1</h2>
+    <h2>
+        <img src="LOGO.png" alt="Logo" class="header-logo">
+        📖 單字強咖這樣背
+        <img id="bookCover" class="book-cover" src="" alt="書本封面">
+    </h2>
 
     <div class="form-group">
-        <label for="weekSelect">1. 選擇週次 (Week)</label>
-        <select id="weekSelect">
+        <label for="bookSelect">1. 選擇單字書 (Book)</label>
+        <select id="bookSelect">
             <option value="">-- 請選擇 --</option>
+            <option value="Book1">BOOK 1</option>
+            <option value="Book2">BOOK 2</option>
+            <option value="Book3">BOOK 3</option>
         </select>
     </div>
 
     <div class="form-group">
-        <label for="unitSelect">2. 選擇單元 (Unit)</label>
+        <label for="weekSelect">2. 選擇週次 (Week)</label>
+        <select id="weekSelect" disabled>
+            <option value="">-- 請先選擇單字書 --</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="unitSelect">3. 選擇單元 (Unit)</label>
         <select id="unitSelect" disabled>
             <option value="">-- 請先選擇週次 --</option>
         </select>
     </div>
 
     <div class="form-group">
-        <label for="audioSelect">3. 選擇內容類型</label>
+        <label for="audioSelect">4. 選擇內容類型</label>
         <select id="audioSelect" disabled>
             <option value="">-- 請先選擇單元 --</option>
         </select>
@@ -57,31 +95,61 @@
 </div>
 
 <script>
-    // 偵測是否在 LINE 內建瀏覽器開啟
     if (navigator.userAgent.indexOf('Line') > -1) {
         alert('為了更好的播放體驗，請點擊右上角「...」，選擇「使用預設瀏覽器開啟」或「在 Safari 開啟」，並將本網頁「加入主畫面」。');
     }
 
+    const bookSelect = document.getElementById('bookSelect');
     const weekSelect = document.getElementById('weekSelect');
     const unitSelect = document.getElementById('unitSelect');
     const audioSelect = document.getElementById('audioSelect');
     const playerSection = document.getElementById('playerSection');
     const mainAudio = document.getElementById('mainAudio');
     const audioTitle = document.getElementById('audioTitle');
+    const bookCover = document.getElementById('bookCover'); // 取得封面圖片元素
 
     function pad(num) {
         return num.toString().padStart(2, '0');
     }
 
-    // 1. 初始化 18 週
-    for (let i = 1; i <= 18; i++) {
-        let opt = document.createElement('option');
-        opt.value = i;
-        opt.innerHTML = `第 ${i} 週`;
-        weekSelect.appendChild(opt);
-    }
+    const bookSettings = {
+        'Book1': { startWeek: 1 },
+        'Book2': { startWeek: 19 },
+        'Book3': { startWeek: 37 }
+    };
 
-    // 2. 週次變動邏輯
+    // 1. 單字書變動
+    bookSelect.addEventListener('change', function() {
+        weekSelect.innerHTML = '<option value="">-- 請選擇週次 --</option>';
+        unitSelect.innerHTML = '<option value="">-- 請先選擇週次 --</option>';
+        audioSelect.innerHTML = '<option value="">-- 請先選擇單元 --</option>';
+        unitSelect.disabled = true;
+        audioSelect.disabled = true;
+        playerSection.style.display = 'none';
+
+        // 控制封面顯示
+        if (this.value) {
+            // 將 Book1 轉為 BOOK1 以符合你的檔名
+            bookCover.src = `${this.value.toUpperCase()}封面.png`; 
+            bookCover.style.display = 'block';
+            
+            weekSelect.disabled = false;
+            const start = bookSettings[this.value].startWeek;
+            for (let i = 0; i < 18; i++) {
+                let currentWeek = start + i;
+                let opt = document.createElement('option');
+                opt.value = currentWeek;
+                opt.innerHTML = `第 ${currentWeek} 週`;
+                weekSelect.appendChild(opt);
+            }
+        } else {
+            bookCover.style.display = 'none'; // 沒有選擇時隱藏封面
+            weekSelect.disabled = true;
+            weekSelect.innerHTML = '<option value="">-- 請先選擇單字書 --</option>';
+        }
+    });
+
+    // 2. 週次變動
     weekSelect.addEventListener('change', function() {
         unitSelect.innerHTML = '<option value="">-- 請選擇單元 --</option>';
         audioSelect.innerHTML = '<option value="">-- 請先選擇單元 --</option>';
@@ -103,22 +171,25 @@
         }
     });
 
-    // 3. 單元變動邏輯
+    // 3. 單元變動
     unitSelect.addEventListener('change', function() {
         audioSelect.innerHTML = '<option value="">-- 請選擇類型 --</option>';
         if (this.value) {
             audioSelect.disabled = false;
             const unitNum = parseInt(this.value);
-            const sentenceIdx = pad((unitNum * 2) - 1);
-            const wordIdx = pad(unitNum * 2);
+            const selectedBook = bookSelect.value;
+            
+            const relativeUnitIdx = ((unitNum - 1) % 36) + 1;
+            const sentenceIdx = pad((relativeUnitIdx * 2) - 1);
+            const wordIdx = pad(relativeUnitIdx * 2);
 
             let opt1 = document.createElement('option');
-            opt1.value = `Book1_${sentenceIdx}.mp3`;
+            opt1.value = `${selectedBook}_${sentenceIdx}.mp3`;
             opt1.innerHTML = `Unit ${unitNum} 造句單元`;
             audioSelect.appendChild(opt1);
 
             let opt2 = document.createElement('option');
-            opt2.value = `Book1_${wordIdx}.mp3`;
+            opt2.value = `${selectedBook}_${wordIdx}.mp3`;
             opt2.innerHTML = `Unit ${unitNum} 附錄字表`;
             audioSelect.appendChild(opt2);
         } else {
@@ -126,14 +197,14 @@
         }
     });
 
-    // 4. 播放器邏輯
+    // 4. 播放
     audioSelect.addEventListener('change', function() {
         if (this.value) {
             audioTitle.innerText = this.options[this.selectedIndex].text;
             mainAudio.src = this.value;
             playerSection.style.display = 'block';
             mainAudio.load();
-            mainAudio.play();
+            mainAudio.play(); 
         }
     });
 </script>
