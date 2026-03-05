@@ -7,67 +7,51 @@
         body { font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; padding: 20px; line-height: 1.6; background-color: #f0f2f5; }
         .container { max-width: 500px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
         
-        h2 { 
-            color: #1a73e8; 
-            text-align: center; 
-            margin-bottom: 25px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            gap: 12px; 
-        }
-
-        /* 1. 加大 LOGO */
-        .header-logo {
-            height: 2.5em; /* 調大尺寸 */
-            width: auto;   
-            vertical-align: middle; 
-        }
-
-        .book-cover {
-            height: 2.5em; 
-            width: auto;
-            border-radius: 4px;
-            display: none; 
-        }
+        h2 { color: #1a73e8; text-align: center; margin-bottom: 25px; display: flex; align-items: center; justify-content: center; gap: 12px; }
+        .header-logo { height: 2.5em; width: auto; vertical-align: middle; }
+        .book-cover { height: 2.5em; width: auto; border-radius: 4px; display: none; }
 
         .form-group { margin-bottom: 20px; }
         label { display: block; margin-bottom: 8px; font-weight: bold; color: #5f6368; }
 
-        /* 2. 單字書按鈕樣式 */
-        .book-options {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
+        .book-options { display: flex; gap: 10px; margin-bottom: 10px; }
         .book-btn {
-            flex: 1;
-            padding: 12px;
-            border: 2px solid #dadce0;
-            border-radius: 8px;
-            background-color: white;
-            color: #5f6368;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-align: center;
+            flex: 1; padding: 12px; border: 2px solid #dadce0; border-radius: 8px;
+            background-color: white; color: #5f6368; font-weight: bold; cursor: pointer;
+            transition: all 0.2s; text-align: center;
         }
-        .book-btn:hover { border-color: #1a73e8; color: #1a73e8; }
-        .book-btn.active {
-            background-color: #1a73e8;
-            color: white;
-            border-color: #1a73e8;
-            box-shadow: 0 4px 10px rgba(26, 115, 232, 0.3);
-        }
+        .book-btn.active { background-color: #1a73e8; color: white; border-color: #1a73e8; }
 
         select { width: 100%; padding: 12px; border: 2px solid #dadce0; border-radius: 8px; font-size: 16px; appearance: none; background: url('data:image/svg+xml;charset=US-ASCII,<svg%20xmlns%3D"http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg"%20width%3D"24"%20height%3D"24"%20viewBox%3D"0%200%2024%2024"><path%20fill%3D"%235F6368"%20d%3D"M7%2010l5%205%205-5z"%2F><%2Fsvg>') no-repeat right 10px center; background-color: white; }
-        select:focus { outline: none; border-color: #1a73e8; }
         select:disabled { background-color: #f1f3f4; cursor: not-allowed; }
         
+        /* 播放器與自定義進度條樣式 */
         .audio-player { margin-top: 30px; text-align: center; display: none; padding: 20px; background: #e8f0fe; border-radius: 10px; }
-        #audioTitle { font-weight: bold; color: #1967d2; display: block; margin-bottom: 10px; }
-        audio { width: 100%; }
-        .tip { font-size: 0.85em; color: #e67e22; margin-top: 10px; text-align: center; display: block; }
+        #audioTitle { font-weight: bold; color: #1967d2; display: block; margin-bottom: 15px; }
+        
+        /* 自定義進度條容器 */
+        .progress-container {
+            width: 100%; height: 12px; background: #dadce0; border-radius: 6px;
+            margin: 20px 0; position: relative; cursor: pointer; overflow: hidden;
+        }
+        /* 實際播放進度 */
+        .progress-bar { height: 100%; background: #1a73e8; width: 0%; position: absolute; z-index: 2; }
+        /* AB 點顯示區塊 */
+        .ab-range-highlight {
+            height: 100%; background: rgba(26, 115, 232, 0.4); 
+            position: absolute; display: none; z-index: 1;
+            border-left: 2px solid #0d47a1; border-right: 2px solid #0d47a1;
+        }
+
+        .ab-controls { display: flex; justify-content: space-between; gap: 10px; margin-top: 10px; }
+        .ab-btn {
+            flex: 1; padding: 10px; border: 1px solid #1a73e8; border-radius: 5px;
+            background: white; color: #1a73e8; font-size: 0.9em; cursor: pointer; font-weight: bold;
+        }
+        .ab-btn.active { background: #1a73e8; color: white; }
+        .ab-info { font-size: 0.85em; color: #5f6368; margin-top: 12px; font-weight: 500; }
+
+        .tip { font-size: 0.85em; color: #e67e22; margin-top: 15px; text-align: center; display: block; }
     </style>
 </head>
 <body>
@@ -90,41 +74,47 @@
 
     <div class="form-group">
         <label for="weekSelect">2. 選擇週次 (Week)</label>
-        <select id="weekSelect" disabled>
-            <option value="">-- 請先選擇單字書 --</option>
-        </select>
+        <select id="weekSelect" disabled><option value="">-- 請先選擇單字書 --</option></select>
     </div>
 
     <div class="form-group">
         <label for="unitSelect">3. 選擇單元 (Unit)</label>
-        <select id="unitSelect" disabled>
-            <option value="">-- 請先選擇週次 --</option>
-        </select>
+        <select id="unitSelect" disabled><option value="">-- 請先選擇週次 --</option></select>
     </div>
 
     <div class="form-group">
         <label for="audioSelect">4. 選擇內容類型</label>
-        <select id="audioSelect" disabled>
-            <option value="">-- 請先選擇單元 --</option>
-        </select>
+        <select id="audioSelect" disabled><option value="">-- 請先選擇單元 --</option></select>
     </div>
 
     <div id="playerSection" class="audio-player">
         <span id="audioTitle"></span>
-        <audio id="mainAudio" controls>
+        
+        <div class="progress-container" id="progressContainer">
+            <div class="ab-range-highlight" id="abRangeHighlight"></div>
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+
+        <audio id="mainAudio">
             <source src="" type="audio/mpeg">
-            您的瀏覽器不支援音頻播放。
         </audio>
+
+        <div style="margin-bottom: 15px;">
+            <button id="playPauseBtn" style="padding: 10px 25px; border-radius: 20px; border: none; background: #1a73e8; color: white; cursor: pointer;">播放 / 暫停</button>
+        </div>
+
+        <div class="ab-controls">
+            <button id="btnA" class="ab-btn">標記 A 點</button>
+            <button id="btnB" class="ab-btn">標記 B 點</button>
+            <button id="btnReset" class="ab-btn" style="border-color: #d93025; color: #d93025;">清除 AB</button>
+        </div>
+        <div id="abDisplay" class="ab-info">點擊上方按鈕設定復讀區間</div>
     </div>
     
     <span class="tip">💡 建議使用 Safari 開啟並「加入主畫面」</span>
 </div>
 
 <script>
-    if (navigator.userAgent.indexOf('Line') > -1) {
-        alert('為了更好的播放體驗，請點擊右上角「...」，選擇「使用預設瀏覽器開啟」或「在 Safari 開啟」，並將本網頁「加入主畫面」。');
-    }
-
     const weekSelect = document.getElementById('weekSelect');
     const unitSelect = document.getElementById('unitSelect');
     const audioSelect = document.getElementById('audioSelect');
@@ -133,63 +123,85 @@
     const audioTitle = document.getElementById('audioTitle');
     const bookCover = document.getElementById('bookCover');
     const bookBtns = document.querySelectorAll('.book-btn');
+    
+    // 進度條相關
+    const progressContainer = document.getElementById('progressContainer');
+    const progressBar = document.getElementById('progressBar');
+    const abRangeHighlight = document.getElementById('abRangeHighlight');
+    const playPauseBtn = document.getElementById('playPauseBtn');
 
-    let selectedBookValue = ""; // 儲存當前選中的書
+    // AB 復讀變數
+    let pointA = null;
+    let pointB = null;
+    const btnA = document.getElementById('btnA');
+    const btnB = document.getElementById('btnB');
+    const btnReset = document.getElementById('btnReset');
+    const abDisplay = document.getElementById('abDisplay');
 
-    function pad(num) {
-        return num.toString().padStart(2, '0');
-    }
+    let selectedBookValue = "";
+    const bookSettings = { 'Book1': { startWeek: 1 }, 'Book2': { startWeek: 19 }, 'Book3': { startWeek: 37 } };
 
-    const bookSettings = {
-        'Book1': { startWeek: 1 },
-        'Book2': { startWeek: 19 },
-        'Book3': { startWeek: 37 }
-    };
+    // 播放暫停切換
+    playPauseBtn.addEventListener('click', () => {
+        if (mainAudio.paused) mainAudio.play();
+        else mainAudio.pause();
+    });
 
-    // 1. 單字書按鈕點擊事件
+    // 點擊進度條跳轉時間
+    progressContainer.addEventListener('click', (e) => {
+        const rect = progressContainer.getBoundingClientRect();
+        const pos = (e.clientX - rect.left) / rect.width;
+        mainAudio.currentTime = pos * mainAudio.duration;
+    });
+
+    // 更新進度條顏色與範圍
+    mainAudio.addEventListener('timeupdate', () => {
+        const progress = (mainAudio.currentTime / mainAudio.duration) * 100;
+        progressBar.style.width = progress + "%";
+
+        // AB 循環邏輯
+        if (pointA !== null && pointB !== null) {
+            if (mainAudio.currentTime >= pointB) {
+                mainAudio.currentTime = pointA;
+                mainAudio.play();
+            }
+        }
+    });
+
+    // 設定單字書按鈕
     bookBtns.forEach(btn => {
         btn.addEventListener('click', function() {
-            // 切換按鈕樣式
             bookBtns.forEach(b => b.classList.remove('active'));
             this.classList.add('active');
-            
             selectedBookValue = this.getAttribute('data-value');
-
-            // 更新封面
             bookCover.src = `${selectedBookValue.toUpperCase()}封面.png`; 
-            bookCover.style.display = 'block';
-
-            // 重置下方選單
-            weekSelect.innerHTML = '<option value="">-- 選擇週次 --</option>';
-            unitSelect.innerHTML = '<option value="">-- 請先選擇週次 --</option>';
-            audioSelect.innerHTML = '<option value="">-- 請先選擇單元 --</option>';
+            bookCover.style.display = 'inline-block';
             weekSelect.disabled = false;
-            unitSelect.disabled = true;
-            audioSelect.disabled = true;
-            playerSection.style.display = 'none';
-
-            // 填充週次
-            const start = bookSettings[selectedBookValue].startWeek;
-            for (let i = 0; i < 18; i++) {
-                let currentWeek = start + i;
-                let opt = document.createElement('option');
-                opt.value = currentWeek;
-                opt.innerHTML = `第 ${currentWeek} 週`;
-                weekSelect.appendChild(opt);
-            }
+            // (填充週次邏輯同前...)
+            populateWeeks();
+            resetAB();
         });
     });
 
-    // 2. 週次變動
-    weekSelect.addEventListener('change', function() {
-        unitSelect.innerHTML = '<option value="">-- 選擇單元 --</option>';
-        audioSelect.innerHTML = '<option value="">-- 請先選擇單元 --</option>';
-        audioSelect.disabled = true;
-        playerSection.style.display = 'none';
+    function populateWeeks() {
+        weekSelect.innerHTML = '<option value="">-- 選擇週次 --</option>';
+        const start = bookSettings[selectedBookValue].startWeek;
+        for (let i = 0; i < 18; i++) {
+            let currentWeek = start + i;
+            let opt = document.createElement('option');
+            opt.value = currentWeek;
+            opt.innerHTML = `第 ${currentWeek} 週`;
+            weekSelect.appendChild(opt);
+        }
+    }
 
-        if (this.value) {
-            unitSelect.disabled = false;
-            const weekNum = parseInt(this.value);
+    // 選單變動重置
+    weekSelect.onchange = () => { resetAB(); populateUnits(); };
+    function populateUnits() {
+        unitSelect.innerHTML = '<option value="">-- 選擇單元 --</option>';
+        unitSelect.disabled = !weekSelect.value;
+        if (weekSelect.value) {
+            const weekNum = parseInt(weekSelect.value);
             for (let i = 1; i <= 2; i++) {
                 let unitNum = (weekNum - 1) * 2 + i;
                 let opt = document.createElement('option');
@@ -197,46 +209,80 @@
                 opt.innerHTML = `Unit ${unitNum}`;
                 unitSelect.appendChild(opt);
             }
-        } else {
-            unitSelect.disabled = true;
         }
-    });
+    }
 
-    // 3. 單元變動
-    unitSelect.addEventListener('change', function() {
+    unitSelect.onchange = () => { resetAB(); populateAudio(); };
+    function populateAudio() {
         audioSelect.innerHTML = '<option value="">-- 選擇類型 --</option>';
-        if (this.value) {
-            audioSelect.disabled = false;
-            const unitNum = parseInt(this.value);
-            
-            const relativeUnitIdx = ((unitNum - 1) % 36) + 1;
-            const sentenceIdx = pad((relativeUnitIdx * 2) - 1);
-            const wordIdx = pad(relativeUnitIdx * 2);
-
-            let opt1 = document.createElement('option');
-            opt1.value = `${selectedBookValue}_${sentenceIdx}.mp3`;
-            opt1.innerHTML = `Unit ${unitNum} 造句單元`;
-            audioSelect.appendChild(opt1);
-
-            let opt2 = document.createElement('option');
-            opt2.value = `${selectedBookValue}_${wordIdx}.mp3`;
-            opt2.innerHTML = `Unit ${unitNum} 附錄字表`;
-            audioSelect.appendChild(opt2);
-        } else {
-            audioSelect.disabled = true;
+        audioSelect.disabled = !unitSelect.value;
+        if (unitSelect.value) {
+            const unitNum = parseInt(unitSelect.value);
+            const relIdx = ((unitNum - 1) % 36) + 1;
+            const sIdx = unitNum.toString().padStart(2, '0'); // 這裡簡化邏輯供參考
+            audioSelect.innerHTML += `<option value="${selectedBookValue}_${(relIdx*2-1).toString().padStart(2,'0')}.mp3">Unit ${unitNum} 造句</option>`;
+            audioSelect.innerHTML += `<option value="${selectedBookValue}_${(relIdx*2).toString().padStart(2,'0')}.mp3">Unit ${unitNum} 字表</option>`;
         }
-    });
+    }
 
-    // 4. 播放
-    audioSelect.addEventListener('change', function() {
+    audioSelect.onchange = function() {
         if (this.value) {
             audioTitle.innerText = this.options[this.selectedIndex].text;
             mainAudio.src = this.value;
             playerSection.style.display = 'block';
             mainAudio.load();
-            mainAudio.play(); 
+            mainAudio.play();
+            resetAB();
         }
-    });
+    };
+
+    // --- AB 點顯示邏輯 ---
+    function updateABHighlight() {
+        if (pointA !== null && mainAudio.duration) {
+            const startPct = (pointA / mainAudio.duration) * 100;
+            abRangeHighlight.style.left = startPct + "%";
+            abRangeHighlight.style.display = 'block';
+            
+            if (pointB !== null) {
+                const endPct = (pointB / mainAudio.duration) * 100;
+                abRangeHighlight.style.width = (endPct - startPct) + "%";
+            } else {
+                abRangeHighlight.style.width = "2px"; // 只有 A 點時顯示細線
+            }
+        } else {
+            abRangeHighlight.style.display = 'none';
+        }
+    }
+
+    btnA.onclick = () => {
+        pointA = mainAudio.currentTime;
+        btnA.classList.add('active');
+        updateABHighlight();
+        updateABInfo();
+    };
+
+    btnB.onclick = () => {
+        if (pointA === null) return alert("請先設定 A 點");
+        pointB = mainAudio.currentTime;
+        if (pointB <= pointA) return alert("B 點須在 A 點之後");
+        btnB.classList.add('active');
+        updateABHighlight();
+        updateABInfo();
+    };
+
+    btnReset.onclick = resetAB;
+    function resetAB() {
+        pointA = null; pointB = null;
+        btnA.classList.remove('active'); btnB.classList.remove('active');
+        abRangeHighlight.style.display = 'none';
+        updateABInfo();
+    }
+
+    function updateABInfo() {
+        if (pointA !== null && pointB !== null) abDisplay.innerText = `復讀範圍: ${pointA.toFixed(1)}s - ${pointB.toFixed(1)}s`;
+        else if (pointA !== null) abDisplay.innerText = `A 點: ${pointA.toFixed(1)}s (請設定 B 點)`;
+        else abDisplay.innerText = "點擊上方按鈕設定復讀區間";
+    }
 </script>
 
 </body>
