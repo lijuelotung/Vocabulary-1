@@ -25,21 +25,20 @@
         select { width: 100%; padding: 12px; border: 2px solid #dadce0; border-radius: 8px; font-size: 16px; appearance: none; background: url('data:image/svg+xml;charset=US-ASCII,<svg%20xmlns%3D"http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg"%20width%3D"24"%20height%3D"24"%20viewBox%3D"0%200%2024%2024"><path%20fill%3D"%235F6368"%20d%3D"M7%2010l5%205%205-5z"%2F><%2Fsvg>') no-repeat right 10px center; background-color: white; }
         select:disabled { background-color: #f1f3f4; cursor: not-allowed; }
         
-        /* 播放器與自定義進度條樣式 */
+        /* 播放器與進度條樣式 */
         .audio-player { margin-top: 30px; text-align: center; display: none; padding: 20px; background: #e8f0fe; border-radius: 10px; }
         #audioTitle { font-weight: bold; color: #1967d2; display: block; margin-bottom: 15px; }
         
-        /* 自定義進度條容器 */
         .progress-container {
-            width: 100%; height: 12px; background: #dadce0; border-radius: 6px;
-            margin: 20px 0; position: relative; cursor: pointer; overflow: hidden;
+            width: 100%; height: 14px; background: #dadce0; border-radius: 7px;
+            margin: 20px 0; position: relative; cursor: pointer;
         }
-        /* 實際播放進度 */
-        .progress-bar { height: 100%; background: #1a73e8; width: 0%; position: absolute; z-index: 2; }
-        /* AB 點顯示區塊 */
+        .progress-bar { height: 100%; background: #1a73e8; width: 0%; border-radius: 7px; position: absolute; z-index: 3; pointer-events: none; }
+        
+        /* AB 點高亮區塊 */
         .ab-range-highlight {
             height: 100%; background: rgba(26, 115, 232, 0.4); 
-            position: absolute; display: none; z-index: 1;
+            position: absolute; display: none; z-index: 2;
             border-left: 2px solid #0d47a1; border-right: 2px solid #0d47a1;
         }
 
@@ -48,9 +47,10 @@
             flex: 1; padding: 10px; border: 1px solid #1a73e8; border-radius: 5px;
             background: white; color: #1a73e8; font-size: 0.9em; cursor: pointer; font-weight: bold;
         }
-        .ab-btn.active { background: #1a73e8; color: white; }
+        .ab-btn.active { background: #1a73e8 !important; color: white !important; }
         .ab-info { font-size: 0.85em; color: #5f6368; margin-top: 12px; font-weight: 500; }
 
+        .play-main-btn { padding: 10px 30px; border-radius: 20px; border: none; background: #1a73e8; color: white; cursor: pointer; font-weight: bold; font-size: 1.1em; margin-bottom: 10px; }
         .tip { font-size: 0.85em; color: #e67e22; margin-top: 15px; text-align: center; display: block; }
     </style>
 </head>
@@ -95,12 +95,10 @@
             <div class="progress-bar" id="progressBar"></div>
         </div>
 
-        <audio id="mainAudio">
-            <source src="" type="audio/mpeg">
-        </audio>
+        <audio id="mainAudio" preload="metadata"></audio>
 
-        <div style="margin-bottom: 15px;">
-            <button id="playPauseBtn" style="padding: 10px 25px; border-radius: 20px; border: none; background: #1a73e8; color: white; cursor: pointer;">播放 / 暫停</button>
+        <div>
+            <button id="playPauseBtn" class="play-main-btn">▶ 播放</button>
         </div>
 
         <div class="ab-controls">
@@ -108,149 +106,78 @@
             <button id="btnB" class="ab-btn">標記 B 點</button>
             <button id="btnReset" class="ab-btn" style="border-color: #d93025; color: #d93025;">清除 AB</button>
         </div>
-        <div id="abDisplay" class="ab-info">點擊上方按鈕設定復讀區間</div>
+        <div id="abDisplay" class="ab-info">請先開始播放音檔</div>
     </div>
     
     <span class="tip">💡 建議使用 Safari 開啟並「加入主畫面」</span>
 </div>
 
 <script>
-    const weekSelect = document.getElementById('weekSelect');
-    const unitSelect = document.getElementById('unitSelect');
-    const audioSelect = document.getElementById('audioSelect');
-    const playerSection = document.getElementById('playerSection');
     const mainAudio = document.getElementById('mainAudio');
-    const audioTitle = document.getElementById('audioTitle');
-    const bookCover = document.getElementById('bookCover');
-    const bookBtns = document.querySelectorAll('.book-btn');
-    
-    // 進度條相關
-    const progressContainer = document.getElementById('progressContainer');
     const progressBar = document.getElementById('progressBar');
     const abRangeHighlight = document.getElementById('abRangeHighlight');
     const playPauseBtn = document.getElementById('playPauseBtn');
-
-    // AB 復讀變數
-    let pointA = null;
-    let pointB = null;
+    const abDisplay = document.getElementById('abDisplay');
     const btnA = document.getElementById('btnA');
     const btnB = document.getElementById('btnB');
-    const btnReset = document.getElementById('btnReset');
-    const abDisplay = document.getElementById('abDisplay');
 
+    let pointA = null;
+    let pointB = null;
     let selectedBookValue = "";
-    const bookSettings = { 'Book1': { startWeek: 1 }, 'Book2': { startWeek: 19 }, 'Book3': { startWeek: 37 } };
+
+    // 格式化時間
+    const fmt = (s) => isNaN(s) ? "0.0s" : s.toFixed(1) + "s";
 
     // 播放暫停切換
-    playPauseBtn.addEventListener('click', () => {
-        if (mainAudio.paused) mainAudio.play();
-        else mainAudio.pause();
-    });
+    playPauseBtn.onclick = () => {
+        if (mainAudio.paused) {
+            mainAudio.play();
+            playPauseBtn.innerText = "⏸ 暫停";
+        } else {
+            mainAudio.pause();
+            playPauseBtn.innerText = "▶ 播放";
+        }
+    };
 
-    // 點擊進度條跳轉時間
-    progressContainer.addEventListener('click', (e) => {
-        const rect = progressContainer.getBoundingClientRect();
+    // 點擊進度條跳轉
+    document.getElementById('progressContainer').onclick = (e) => {
+        const rect = e.currentTarget.getBoundingClientRect();
         const pos = (e.clientX - rect.left) / rect.width;
-        mainAudio.currentTime = pos * mainAudio.duration;
-    });
+        if (mainAudio.duration) {
+            mainAudio.currentTime = pos * mainAudio.duration;
+        }
+    };
 
-    // 更新進度條顏色與範圍
-    mainAudio.addEventListener('timeupdate', () => {
-        const progress = (mainAudio.currentTime / mainAudio.duration) * 100;
-        progressBar.style.width = progress + "%";
+    // 更新進度與 A-B 循環
+    mainAudio.ontimeupdate = () => {
+        if (!mainAudio.duration) return;
+        const pct = (mainAudio.currentTime / mainAudio.duration) * 100;
+        progressBar.style.width = pct + "%";
 
-        // AB 循環邏輯
         if (pointA !== null && pointB !== null) {
             if (mainAudio.currentTime >= pointB) {
                 mainAudio.currentTime = pointA;
                 mainAudio.play();
             }
         }
-    });
-
-    // 設定單字書按鈕
-    bookBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            bookBtns.forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            selectedBookValue = this.getAttribute('data-value');
-            bookCover.src = `${selectedBookValue.toUpperCase()}封面.png`; 
-            bookCover.style.display = 'inline-block';
-            weekSelect.disabled = false;
-            // (填充週次邏輯同前...)
-            populateWeeks();
-            resetAB();
-        });
-    });
-
-    function populateWeeks() {
-        weekSelect.innerHTML = '<option value="">-- 選擇週次 --</option>';
-        const start = bookSettings[selectedBookValue].startWeek;
-        for (let i = 0; i < 18; i++) {
-            let currentWeek = start + i;
-            let opt = document.createElement('option');
-            opt.value = currentWeek;
-            opt.innerHTML = `第 ${currentWeek} 週`;
-            weekSelect.appendChild(opt);
-        }
-    }
-
-    // 選單變動重置
-    weekSelect.onchange = () => { resetAB(); populateUnits(); };
-    function populateUnits() {
-        unitSelect.innerHTML = '<option value="">-- 選擇單元 --</option>';
-        unitSelect.disabled = !weekSelect.value;
-        if (weekSelect.value) {
-            const weekNum = parseInt(weekSelect.value);
-            for (let i = 1; i <= 2; i++) {
-                let unitNum = (weekNum - 1) * 2 + i;
-                let opt = document.createElement('option');
-                opt.value = unitNum;
-                opt.innerHTML = `Unit ${unitNum}`;
-                unitSelect.appendChild(opt);
-            }
-        }
-    }
-
-    unitSelect.onchange = () => { resetAB(); populateAudio(); };
-    function populateAudio() {
-        audioSelect.innerHTML = '<option value="">-- 選擇類型 --</option>';
-        audioSelect.disabled = !unitSelect.value;
-        if (unitSelect.value) {
-            const unitNum = parseInt(unitSelect.value);
-            const relIdx = ((unitNum - 1) % 36) + 1;
-            const sIdx = unitNum.toString().padStart(2, '0'); // 這裡簡化邏輯供參考
-            audioSelect.innerHTML += `<option value="${selectedBookValue}_${(relIdx*2-1).toString().padStart(2,'0')}.mp3">Unit ${unitNum} 造句</option>`;
-            audioSelect.innerHTML += `<option value="${selectedBookValue}_${(relIdx*2).toString().padStart(2,'0')}.mp3">Unit ${unitNum} 字表</option>`;
-        }
-    }
-
-    audioSelect.onchange = function() {
-        if (this.value) {
-            audioTitle.innerText = this.options[this.selectedIndex].text;
-            mainAudio.src = this.value;
-            playerSection.style.display = 'block';
-            mainAudio.load();
-            mainAudio.play();
-            resetAB();
-        }
+        updateABHighlight(); // 即時更新進度條上的標記
     };
 
-    // --- AB 點顯示邏輯 ---
+    // 重置 A-B 點高亮
     function updateABHighlight() {
-        if (pointA !== null && mainAudio.duration) {
-            const startPct = (pointA / mainAudio.duration) * 100;
-            abRangeHighlight.style.left = startPct + "%";
-            abRangeHighlight.style.display = 'block';
-            
-            if (pointB !== null) {
-                const endPct = (pointB / mainAudio.duration) * 100;
-                abRangeHighlight.style.width = (endPct - startPct) + "%";
-            } else {
-                abRangeHighlight.style.width = "2px"; // 只有 A 點時顯示細線
-            }
-        } else {
+        if (!mainAudio.duration || pointA === null) {
             abRangeHighlight.style.display = 'none';
+            return;
+        }
+        const startPct = (pointA / mainAudio.duration) * 100;
+        abRangeHighlight.style.left = startPct + "%";
+        abRangeHighlight.style.display = 'block';
+
+        if (pointB !== null) {
+            const endPct = (pointB / mainAudio.duration) * 100;
+            abRangeHighlight.style.width = (endPct - startPct) + "%";
+        } else {
+            abRangeHighlight.style.width = "2px"; 
         }
     }
 
@@ -258,32 +185,94 @@
         pointA = mainAudio.currentTime;
         btnA.classList.add('active');
         updateABHighlight();
-        updateABInfo();
+        abDisplay.innerText = `A 點已設定: ${fmt(pointA)} (請播放至 B 點按標記)`;
     };
 
     btnB.onclick = () => {
         if (pointA === null) return alert("請先設定 A 點");
         pointB = mainAudio.currentTime;
-        if (pointB <= pointA) return alert("B 點須在 A 點之後");
+        if (pointB <= pointA) return alert("B 點必須在 A 點之後");
         btnB.classList.add('active');
         updateABHighlight();
-        updateABInfo();
+        abDisplay.innerText = `循環中: ${fmt(pointA)} ↔ ${fmt(pointB)}`;
     };
 
-    btnReset.onclick = resetAB;
+    document.getElementById('btnReset').onclick = resetAB;
     function resetAB() {
         pointA = null; pointB = null;
-        btnA.classList.remove('active'); btnB.classList.remove('active');
+        btnA.classList.remove('active');
+        btnB.classList.remove('active');
         abRangeHighlight.style.display = 'none';
-        updateABInfo();
+        abDisplay.innerText = "點擊標記按鈕設定復讀區間";
     }
 
-    function updateABInfo() {
-        if (pointA !== null && pointB !== null) abDisplay.innerText = `復讀範圍: ${pointA.toFixed(1)}s - ${pointB.toFixed(1)}s`;
-        else if (pointA !== null) abDisplay.innerText = `A 點: ${pointA.toFixed(1)}s (請設定 B 點)`;
-        else abDisplay.innerText = "點擊上方按鈕設定復讀區間";
+    // --- 以下為原有連動邏輯 ---
+    const bookBtns = document.querySelectorAll('.book-btn');
+    const bookSettings = { 'Book1': { startWeek: 1 }, 'Book2': { startWeek: 19 }, 'Book3': { startWeek: 37 } };
+
+    bookBtns.forEach(btn => {
+        btn.onclick = function() {
+            bookBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            selectedBookValue = this.getAttribute('data-value');
+            document.getElementById('bookCover').src = `${selectedBookValue.toUpperCase()}封面.png`; 
+            document.getElementById('bookCover').style.display = 'inline-block';
+            document.getElementById('weekSelect').disabled = false;
+            resetAB();
+            initWeeks();
+        };
+    });
+
+    function initWeeks() {
+        const s = document.getElementById('weekSelect');
+        s.innerHTML = '<option value="">-- 選擇週次 --</option>';
+        const start = bookSettings[selectedBookValue].startWeek;
+        for (let i = 0; i < 18; i++) {
+            let opt = document.createElement('option');
+            opt.value = start + i;
+            opt.innerHTML = `第 ${start + i} 週`;
+            s.appendChild(opt);
+        }
     }
+
+    document.getElementById('weekSelect').onchange = function() {
+        const u = document.getElementById('unitSelect');
+        u.innerHTML = '<option value="">-- 選擇單元 --</option>';
+        u.disabled = !this.value;
+        if (this.value) {
+            const w = parseInt(this.value);
+            for (let i = 1; i <= 2; i++) {
+                let un = (w - 1) * 2 + i;
+                let opt = document.createElement('option');
+                opt.value = un; opt.innerHTML = `Unit ${un}`; u.appendChild(opt);
+            }
+        }
+        resetAB();
+    };
+
+    document.getElementById('unitSelect').onchange = function() {
+        const a = document.getElementById('audioSelect');
+        a.innerHTML = '<option value="">-- 選擇類型 --</option>';
+        a.disabled = !this.value;
+        if (this.value) {
+            const un = parseInt(this.value);
+            const rel = ((un - 1) % 36) + 1;
+            a.innerHTML += `<option value="${selectedBookValue}_${(rel*2-1).toString().padStart(2,'0')}.mp3">Unit ${un} 造句</option>`;
+            a.innerHTML += `<option value="${selectedBookValue}_${(rel*2).toString().padStart(2,'0')}.mp3">Unit ${un} 字表</option>`;
+        }
+        resetAB();
+    };
+
+    document.getElementById('audioSelect').onchange = function() {
+        if (this.value) {
+            document.getElementById('audioTitle').innerText = this.options[this.selectedIndex].text;
+            mainAudio.src = this.value;
+            document.getElementById('playerSection').style.display = 'block';
+            playPauseBtn.innerText = "▶ 播放";
+            mainAudio.load();
+            resetAB();
+        }
+    };
 </script>
-
 </body>
 </html>
