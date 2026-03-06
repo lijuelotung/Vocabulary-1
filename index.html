@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>強咖這樣背 - 完整功能版</title>
+    <title>強咖這樣背 - 10分鐘正式版</title>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
         body { font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; padding: 20px; line-height: 1.6; background-color: #f0f2f5; margin: 0; }
@@ -29,13 +29,9 @@
 
         .audio-player { margin-top: 30px; display: none; padding: 45px 20px 20px; background: white; border-radius: 12px; position: relative; border-top: 1px solid #eee; }
         #audioTitle { font-weight: bold; color: #1a73e8; display: block; text-align: center; margin-bottom: 20px; font-size: 14px; min-height: 1.2em; }
-        .player-top-ctrls { position: absolute; top: 10px; width: calc(100% - 40px); display: flex; justify-content: space-between; align-items: center; }
-        .speed-pill { background: #e8f0fe; color: #1a73e8; padding: 6px 16px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; font-size: 14px; }
         
         .progress-container { width: 100%; height: 8px; background: #e0e0e0; border-radius: 4px; position: relative; cursor: pointer; margin: 20px 0; }
         .progress-bar { height: 100%; background: #1a73e8; width: 0%; border-radius: 4px; position: relative; }
-        .ab-marker { position: absolute; top: -18px; color: #EF6C00; font-weight: bold; font-size: 12px; transform: translateX(-50%); display: none; }
-        .ab-highlight { height: 100%; background: rgba(255, 152, 0, 0.3); position: absolute; top: 0; display: none; border-radius: 4px; }
         .time-display { display: flex; justify-content: space-between; font-size: 12px; color: #5f6368; font-family: monospace; }
 
         .main-controls { display: flex; justify-content: center; align-items: center; gap: 10px; margin: 15px 0; }
@@ -65,8 +61,8 @@
             <button class="action-btn book-btn" data-type="vocab" data-value="Book1" data-start="1" data-cover="BOOK1封面.png">Book 1</button>
             <button class="action-btn book-btn" data-type="vocab" data-value="Book2" data-start="19" data-cover="BOOK2封面.png">Book 2</button>
             <button class="action-btn book-btn" data-type="vocab" data-value="Book3" data-start="37" data-cover="BOOK3封面.png">Book 3</button>
-            <button class="action-btn book-btn phrase-btn-style" data-type="phrase" data-value="PhraseUp" data-start="1" data-cover="片語強咖這樣背上冊封面.png" style="grid-column: span 1.5;">片語(上)</button>
-            <button class="action-btn book-btn phrase-btn-style" data-type="phrase" data-value="PhraseDown" data-start="26" data-cover="片語強咖這樣背下冊封面.png" style="grid-column: span 1.5;">片語(下)</button>
+            <button class="action-btn book-btn phrase-btn-style" data-type="phrase" data-value="Phrase 1" data-start="1" data-cover="片語強咖這樣背上冊封面.png" style="grid-column: span 1.5;">片語(上)</button>
+            <button class="action-btn book-btn phrase-btn-style" data-type="phrase" data-value="Phrase 2" data-start="26" data-cover="片語強咖這樣背下冊封面.png" style="grid-column: span 1.5;">片語(下)</button>
         </div>
     </div>
 
@@ -89,48 +85,43 @@
     </div>
 
     <div id="playerSection" class="audio-player">
-        <div class="player-top-ctrls">
-            <button id="speedBtn" class="speed-pill">1.0x</button>
-            <span style="font-size: 11px; color: #999;">AB 模式</span>
-        </div>
         <span id="audioTitle"></span>
         <div class="progress-container" id="progressContainer">
             <div id="abHighlight" class="ab-highlight"></div>
             <div id="progressBar" class="progress-bar"></div>
-            <div id="markerA" class="ab-marker">▼A</div>
-            <div id="markerB" class="ab-marker">▼B</div>
         </div>
         <div class="time-display"><span id="currentTime">00:00</span><span id="durationTime">00:00</span></div>
         <audio id="mainAudio"></audio>
         
         <div class="main-controls">
-            <button class="ctrl-btn material-icons" onclick="changeTrack(-1)" title="上一首">skip_previous</button>
-            <button class="ctrl-btn material-icons" onclick="mainAudio.currentTime-=5" title="退後5秒">replay_5</button>
+            <button class="ctrl-btn material-icons" onclick="changeTrack(-1)">skip_previous</button>
+            <button class="ctrl-btn material-icons" onclick="mainAudio.currentTime-=5">replay_5</button>
             <button id="playPauseBtn" class="ctrl-btn material-icons" onclick="togglePlay()">play_circle_filled</button>
-            <button class="ctrl-btn material-icons" onclick="mainAudio.currentTime+=5" title="前進5秒">forward_5</button>
-            <button class="ctrl-btn material-icons" onclick="changeTrack(1)" title="下一首">skip_next</button>
+            <button class="ctrl-btn material-icons" onclick="mainAudio.currentTime+=5">forward_5</button>
+            <button class="ctrl-btn material-icons" onclick="changeTrack(1)">skip_next</button>
         </div>
-
         <div class="ab-set-group">
-            <button id="setABBtnA" class="ab-set-btn" onclick="setPoint('A')">標記 A 點</button>
-            <button id="setABBtnB" class="ab-set-btn" onclick="setPoint('B')">標記 B 點</button>
-            <button class="ab-set-btn" style="color:#d93025;" onclick="resetAB()">清除標記</button>
+            <button id="setABBtnA" class="ab-set-btn" onclick="setPoint('A')">標記 A</button>
+            <button id="setABBtnB" class="ab-set-btn" onclick="setPoint('B')">標記 B</button>
+            <button class="ab-set-btn" style="color:#d93025;" onclick="resetAB()">清除</button>
         </div>
     </div>
 </div>
 
 <script>
     const mainAudio = document.getElementById('mainAudio');
-    let state = { book: "", bookType: "", startWeek: 1, week: 0, fileIdx: 1 };
-    let timeLeft = 600;
+    let state = { bookName: "", bookCode: "", bookType: "", startWeek: 1, week: 0, fileIdx: 1, currentLabel: "", unit: 0 };
+    let timeLeft = 600; // 改回 10 分鐘
     let timerId = null;
     let pointA = null, pointB = null;
+    let currentMarker = "";
 
     (function initMarker() {
-        const animals = ['🐶','🐱','🦁','🦊','🐼','🐨','🐥'];
+        const animals = ['🐶','🐱','🦁','🦊','🐼','🐨','🐥','🐸','🐙','🦄'];
         const randomAnimal = animals[Math.floor(Math.random() * animals.length)];
         const fakeIP = Math.floor(Math.random() * 899 + 100);
-        document.getElementById('userMarker').innerText = `${randomAnimal} ${fakeIP}`;
+        currentMarker = `${randomAnimal} ${fakeIP}`;
+        document.getElementById('userMarker').innerText = currentMarker;
     })();
 
     function updateTimer() {
@@ -141,7 +132,17 @@
             document.getElementById('countdown').innerText = `${m}:${s.toString().padStart(2, '0')}`;
         } else {
             clearInterval(timerId);
-            alert("恭喜過關！！🥳");
+            timerId = null;
+            mainAudio.pause();
+            
+            const unitInfo = state.bookType === 'vocab' ? ` (Unit ${state.unit})` : '';
+            const msg = `恭喜過關！ 🥳\n\n` +
+                        `🔹 驗證標記：${currentMarker}\n` +
+                        `📖 教材：${state.bookName}\n` +
+                        `📅 週次：第 ${state.week} 週${unitInfo}\n` +
+                        `🎵 內容：${state.currentLabel}\n\n` +
+                        `請截圖此畫面以供查驗。`;
+            alert(msg);
         }
     }
 
@@ -149,11 +150,13 @@
         btn.onclick = function() {
             document.querySelectorAll('.book-btn').forEach(b => b.classList.remove('active'));
             this.classList.add('active');
-            state.book = this.dataset.value;
+            state.bookName = this.innerText;
+            state.bookCode = this.dataset.value;
             state.bookType = this.dataset.type;
             state.startWeek = parseInt(this.dataset.start);
             document.getElementById('dynamicCover').src = this.dataset.cover;
             document.getElementById('dynamicCover').style.display = 'block';
+            
             const ws = document.getElementById('weekSelect');
             ws.disabled = false;
             ws.innerHTML = '<option value="">-- 選擇週次 --</option>';
@@ -177,7 +180,7 @@
                 const b = document.createElement('button'); b.className='action-btn'; b.innerText=`Unit ${u}`;
                 b.onclick = () => {
                     Array.from(group.children).forEach(x=>x.classList.remove('active')); b.classList.add('active');
-                    renderContentBtns(u, true);
+                    state.unit = u; renderContentBtns(u, true);
                 };
                 group.appendChild(b);
             });
@@ -192,13 +195,7 @@
         const labels = isVocab ? ['造句單元','附錄字表'] : ['字表','造句'];
         labels.forEach((l, idx) => {
             const b = document.createElement('button'); b.className='action-btn'; b.innerText = l;
-            let fIdx;
-            if(isVocab) {
-                const bookStartUnit = (state.startWeek - 1) * 2 + 1;
-                fIdx = (num - bookStartUnit) * 2 + (idx === 0 ? 1 : 2);
-            } else {
-                fIdx = (num - state.startWeek) * 2 + (idx === 0 ? 1 : 2);
-            }
+            let fIdx = isVocab ? ((num - ((state.startWeek-1)*2+1))*2 + (idx+1)) : ((num - state.startWeek)*2 + (idx+1));
             b.onclick = () => playFile(fIdx, b, l);
             group.appendChild(b);
         });
@@ -206,11 +203,14 @@
 
     function playFile(idx, btn, label) {
         state.fileIdx = idx;
+        state.currentLabel = label;
         if(btn) { Array.from(btn.parentElement.children).forEach(x=>x.classList.remove('active')); btn.classList.add('active'); }
-        const fileName = `${state.book}_${idx.toString().padStart(2, '0')}.mp3`;
-        document.getElementById('audioTitle').innerText = `${state.book} - ${label}`;
+        const fileName = `${state.bookCode}_${idx.toString().padStart(2, '0')}.mp3`;
+        document.getElementById('audioTitle').innerText = `${state.bookName} - ${label}`;
         mainAudio.src = fileName;
-        mainAudio.play().catch(() => { document.getElementById('audioTitle').innerText = "❌ 找不到: " + fileName; });
+        mainAudio.play().catch(() => { 
+            document.getElementById('audioTitle').innerText = "❌ 找不到: " + fileName; 
+        });
         document.getElementById('playerSection').style.display = 'block';
         resetAB();
     }
@@ -218,54 +218,37 @@
     function changeTrack(dir) {
         let nextIdx = state.fileIdx + dir;
         if(nextIdx < 1) return;
-        playFile(nextIdx, null, "正在切換...");
+        playFile(nextIdx, null, "自動切換");
     }
 
     function togglePlay() { mainAudio.paused ? mainAudio.play() : mainAudio.pause(); }
+    
     mainAudio.onplay = () => { 
         document.getElementById('playPauseBtn').innerText = "pause_circle_filled"; 
-        if(!timerId) timerId = setInterval(updateTimer, 1000);
+        if(!timerId && timeLeft > 0) timerId = setInterval(updateTimer, 1000);
     };
     mainAudio.onpause = () => { 
         document.getElementById('playPauseBtn').innerText = "play_circle_filled"; 
         clearInterval(timerId); timerId = null;
     };
 
-    document.getElementById('speedBtn').onclick = function() {
-        const rates = [1.0, 1.2, 1.5, 0.8];
-        let i = rates.indexOf(mainAudio.playbackRate);
-        mainAudio.playbackRate = rates[(i + 1) % rates.length];
-        this.innerText = mainAudio.playbackRate + "x";
-    };
-
-    function setPoint(type) {
-        if(type === 'A') { pointA = mainAudio.currentTime; document.getElementById('setABBtnA').classList.add('active'); }
-        else { pointB = mainAudio.currentTime; document.getElementById('setABBtnB').classList.add('active'); }
-        updateABUI();
-    }
-    function resetAB() { pointA = null; pointB = null; document.querySelectorAll('.ab-set-btn').forEach(b=>b.classList.remove('active')); updateABUI(); }
-    function updateABUI() {
+    function setPoint(t){ if(t==='A')pointA=mainAudio.currentTime; else pointB=mainAudio.currentTime; updateAB(); }
+    function resetAB(){ pointA=null; pointB=null; updateAB(); }
+    function updateAB(){
         const d = mainAudio.duration || 1;
-        document.getElementById('markerA').style.display = pointA !== null ? 'block' : 'none';
-        document.getElementById('markerA').style.left = (pointA/d*100)+'%';
-        document.getElementById('markerB').style.display = pointB !== null ? 'block' : 'none';
-        document.getElementById('markerB').style.left = (pointB/d*100)+'%';
-        const high = document.getElementById('abHighlight');
-        if(pointA!==null && pointB!==null) { high.style.display = 'block'; high.style.left = (pointA/d*100)+'%'; high.style.width = ((pointB-pointA)/d*100)+'%'; }
-        else high.style.display = 'none';
+        const h = document.getElementById('abHighlight');
+        if(pointA!==null && pointB!==null){ h.style.display='block'; h.style.left=(pointA/d*100)+'%'; h.style.width=((pointB-pointA)/d*100)+'%'; }
+        else h.style.display='none';
     }
     mainAudio.ontimeupdate = () => {
         const cur = mainAudio.currentTime, dur = mainAudio.duration || 1;
         document.getElementById('progressBar').style.width = (cur/dur*100)+'%';
-        document.getElementById('currentTime').innerText = fmtT(cur);
-        document.getElementById('durationTime').innerText = fmtT(dur);
+        document.getElementById('currentTime').innerText = fmt(cur);
+        document.getElementById('durationTime').innerText = fmt(dur);
         if(pointA!==null && pointB!==null && cur >= pointB) mainAudio.currentTime = pointA;
+        if(!mainAudio.paused && !timerId && timeLeft > 0) timerId = setInterval(updateTimer, 1000); // 確保計時啟動
     };
-    document.getElementById('progressContainer').onclick = (e) => {
-        const rect = e.currentTarget.getBoundingClientRect();
-        mainAudio.currentTime = ((e.clientX - rect.left) / rect.width) * mainAudio.duration;
-    };
-    function fmtT(s) { return Math.floor(s/60)+":"+Math.floor(s%60).toString().padStart(2,'0'); }
+    function fmt(s){ return Math.floor(s/60)+":"+Math.floor(s%60).toString().padStart(2,'0'); }
 </script>
 </body>
 </html>
