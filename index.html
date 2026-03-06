@@ -12,15 +12,24 @@
         .logo-img { height: 50px; width: auto; }
         .book-cover-img { height: 60px; width: auto; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: none; }
         h2 { color: #1a73e8; margin: 0; font-size: 24px; white-space: nowrap; }
+        
         .form-group { margin-bottom: 25px; }
-        label { display: block; margin-bottom: 12px; font-weight: bold; color: #5f6368; border-left: 4px solid #1a73e8; padding-left: 8px; }
+        .label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        label { font-weight: bold; color: #5f6368; border-left: 4px solid #1a73e8; padding-left: 8px; margin: 0; }
+        
+        /* 倒數計時與 IP 標記樣式 */
+        .timer-display { color: #d93025; font-weight: bold; font-family: monospace; font-size: 16px; background: #fce8e6; padding: 2px 8px; border-radius: 4px; }
+        .ip-marker { font-size: 13px; color: #1a73e8; background: #e8f0fe; padding: 2px 8px; border-radius: 20px; font-weight: bold; }
+
         .btn-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 10px; }
-        .action-btn { padding: 12px; border: 2px solid #dadce0; border-radius: 8px; background: white; color: #5f6368; font-weight: bold; cursor: pointer; font-size: 14px; }
-        .action-btn.active { background-color: #1a73e8; color: white; border-color: #1a73e8; }
+        .action-btn { padding: 12px; border: 2px solid #dadce0; border-radius: 8px; background: white; color: #5f6368; font-weight: bold; cursor: pointer; font-size: 14px; transition: all 0.2s ease; }
+        .phrase-btn-style { background-color: #fdf5e6 !important; border-color: #f5deb3; }
+        .action-btn.active { background-color: #1a73e8 !important; color: #ffffff !important; border-color: #1a73e8 !important; box-shadow: 0 2px 8px rgba(26, 115, 232, 0.4); text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+
         select { width: 100%; padding: 12px; border: 2px solid #dadce0; border-radius: 8px; font-size: 16px; cursor: pointer; background-color: #fff; }
 
         /* 播放器 UI */
-        .audio-player { margin-top: 30px; display: none; padding: 45px 20px 20px; background: white; border-radius: 12px; position: relative; border-top: 1px solid #eee; box-shadow: 0 -5px 15px rgba(0,0,0,0.03); }
+        .audio-player { margin-top: 30px; display: none; padding: 45px 20px 20px; background: white; border-radius: 12px; position: relative; border-top: 1px solid #eee; }
         #audioTitle { font-weight: bold; color: #1a73e8; display: block; text-align: center; margin-bottom: 25px; font-size: 14px; height: 1.2em; }
         .player-top-ctrls { position: absolute; top: 10px; width: calc(100% - 40px); display: flex; justify-content: space-between; align-items: center; }
         .speed-pill { background: #e8f0fe; color: #1a73e8; padding: 6px 16px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; font-size: 14px; }
@@ -53,18 +62,24 @@
     </div>
 
     <div class="form-group">
-        <label>1. 選擇教材</label>
+        <div class="label-row">
+            <label>1. 選擇教材</label>
+            <div id="userMarker" class="ip-marker">正在載入標記...</div>
+        </div>
         <div class="btn-grid" style="grid-template-columns: repeat(3, 1fr);">
             <button class="action-btn book-btn" data-type="vocab" data-value="Book1" data-cover="BOOK1封面.png">Book 1</button>
             <button class="action-btn book-btn" data-type="vocab" data-value="Book2" data-cover="BOOK2封面.png">Book 2</button>
             <button class="action-btn book-btn" data-type="vocab" data-value="Book3" data-cover="BOOK3封面.png">Book 3</button>
-            <button class="action-btn book-btn" data-type="phrase" data-value="PhraseUp" data-cover="片語強咖這樣背上冊封面.png" style="grid-column: span 1.5; background: #fff7e6;">片語(上)</button>
-            <button class="action-btn book-btn" data-type="phrase" data-value="PhraseDown" data-cover="片語強咖這樣背下冊封面.png" style="grid-column: span 1.5; background: #fff7e6;">片語(下)</button>
+            <button class="action-btn book-btn phrase-btn-style" data-type="phrase" data-value="PhraseUp" data-cover="片語強咖這樣背上冊封面.png" style="grid-column: span 1.5;">片語(上)</button>
+            <button class="action-btn book-btn phrase-btn-style" data-type="phrase" data-value="PhraseDown" data-cover="片語強咖這樣背下冊封面.png" style="grid-column: span 1.5;">片語(下)</button>
         </div>
     </div>
 
     <div class="form-group">
-        <label>2. 選擇週次</label>
+        <div class="label-row">
+            <label>2. 選擇週次</label>
+            <div id="countdown" class="timer-display">10:00</div>
+        </div>
         <select id="weekSelect" disabled><option value="">-- 請先選擇教材 --</option></select>
     </div>
 
@@ -83,9 +98,7 @@
             <button id="speedBtn" class="speed-pill">1.0x</button>
             <span style="font-size: 12px; color: #999;">AB 複讀模式</span>
         </div>
-
         <span id="audioTitle">準備播放...</span>
-
         <div class="player-seek-bar">
             <div id="markerA" class="ab-marker">A</div>
             <div id="markerB" class="ab-marker">B</div>
@@ -95,9 +108,7 @@
             </div>
             <div class="time-display"><span id="currentTime">00:00</span><span id="durationTime">00:00</span></div>
         </div>
-
         <audio id="mainAudio"></audio>
-
         <div class="main-controls">
             <button class="ctrl-btn material-icons" id="prevTrackBtn">skip_previous</button>
             <button class="ctrl-btn material-icons" id="rewindBtn">replay_5</button>
@@ -105,7 +116,6 @@
             <button class="ctrl-btn material-icons" id="forwardBtn">forward_5</button>
             <button class="ctrl-btn material-icons" id="nextTrackBtn">skip_next</button>
         </div>
-
         <div class="ab-set-group">
             <button id="setABBtnA" class="ab-set-btn">標記 A 點</button>
             <button id="setABBtnB" class="ab-set-btn">標記 B 點</button>
@@ -128,7 +138,53 @@
     let speedIdx = 2; 
     const speeds = [0.6, 0.8, 1.0, 1.2, 1.5];
 
-    // 書籍選擇
+    // --- 倒數計時功能 ---
+    let timeLeft = 600; // 10分鐘 = 600秒
+    let timerId = null;
+
+    function startTimer() {
+        if (timerId) return;
+        timerId = setInterval(() => {
+            if (timeLeft > 0) {
+                timeLeft--;
+                updateTimerDisplay();
+            } else {
+                clearInterval(timerId);
+                timerId = null;
+                alert("恭喜過關！！🥳");
+            }
+        }, 1000);
+    }
+
+    function stopTimer() {
+        clearInterval(timerId);
+        timerId = null;
+    }
+
+    function updateTimerDisplay() {
+        const m = Math.floor(timeLeft / 60);
+        const s = timeLeft % 60;
+        document.getElementById('countdown').innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    }
+
+    // --- 防偽標記功能 ---
+    function initUserMarker() {
+        const animals = ['🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐸','🐵','🐔','🐧','🐦','🐤','🦆','🦅','🦉','🦇','🐺','🐗','🐴','🦄','🐝','🐛','🦋','🐌','🐞','🐜','🦟','🦗','🕷','🕸','🦂','🐢','🐍','🦎','🐙','🦑','🦐','🦞','🦀','🐡','🐠','🐟','🐬','🐳','🐋','🦈','🐊','🐅','🐆','🦓','🦍','🦧','🐘','🦛','🦏','🐪','🐫','🦒','🦘','🐃','🐂','🐄','🐎','🐖','🐏','🐑','🐐','🦌','🐕','🐩','🐈','🐓','🦃','🦚','🦜','🦢','🦩','🐇','🦝','🦨','🦡','🦦','🦥','🐁','🐀','🐿','🦔'];
+        const randomAnimal = animals[Math.floor(Math.random() * animals.length)];
+        
+        // 獲取簡單識別碼 (使用隨機數模擬 IP 後三碼，或透過 API 獲取)
+        // 為了展示方便，這裡先產生一個隨機 3 位數。若要真實 IP，需調用第三方服務。
+        const randomIPPart = Math.floor(Math.random() * 900 + 100); 
+        document.getElementById('userMarker').innerText = `${randomAnimal} ${randomIPPart}`;
+    }
+    initUserMarker();
+
+    // 監聽播放狀態連動計時器
+    mainAudio.onplay = startTimer;
+    mainAudio.onpause = stopTimer;
+    mainAudio.onended = stopTimer;
+
+    // --- 教材聯動邏輯 (保留您原有的功能) ---
     document.querySelectorAll('.book-btn').forEach(btn => {
         btn.onclick = function() {
             document.querySelectorAll('.book-btn').forEach(b => b.classList.remove('active'));
@@ -139,7 +195,6 @@
             dynamicCover.style.display = 'block';
             weekSelect.disabled = false;
             weekSelect.innerHTML = '<option value="">-- 選擇週次 --</option>';
-            
             let start, end;
             if (state.book === "PhraseUp") { start = 1; end = 25; }
             else if (state.book === "PhraseDown") { start = 26; end = 50; }
@@ -148,12 +203,10 @@
                 end = start + 17;
             }
             for(let i = start; i <= end; i++) weekSelect.innerHTML += `<option value="${i}">第 ${i} 週</option>`;
-            unitArea.style.display = 'none';
-            contentArea.style.display = 'none';
+            unitArea.style.display = 'none'; contentArea.style.display = 'none';
         };
     });
 
-    // 週次選擇
     weekSelect.onchange = function() {
         if (!this.value) return;
         state.week = parseInt(this.value);
@@ -163,8 +216,7 @@
             const uStart = (state.week - 1) * 2 + 1;
             [uStart, uStart + 1].forEach(u => {
                 const btn = document.createElement('button');
-                btn.className = 'action-btn';
-                btn.innerText = `Unit ${u}`;
+                btn.className = 'action-btn'; btn.innerText = `Unit ${u}`;
                 btn.onclick = () => {
                     Array.from(unitBtnGroup.children).forEach(b => b.classList.remove('active'));
                     btn.classList.add('active');
@@ -173,37 +225,28 @@
                 unitBtnGroup.appendChild(btn);
             });
         } else {
-            // 片語書邏輯：直接顯示字表與造句
-            unitArea.style.display = 'none'; 
-            contentArea.style.display = 'block';
+            unitArea.style.display = 'none'; contentArea.style.display = 'block';
             renderPhraseContent(state.week);
         }
     };
 
-    // 單字書按鈕渲染
     function renderVocabContent(unitNum) {
         contentBtnGroup.innerHTML = '';
         document.getElementById('contentLabel').innerText = "4. 播放內容";
         [{l:'造句單元', i:unitNum*2-1}, {l:'附錄字表', i:unitNum*2}].forEach(t => {
             const btn = document.createElement('button');
-            btn.className = 'action-btn';
-            btn.innerText = t.l;
+            btn.className = 'action-btn'; btn.innerText = t.l;
             btn.onclick = () => { state.currentIdx = t.i; playAudio(t.i, btn, t.l); };
             contentBtnGroup.appendChild(btn);
         });
     }
 
-    // 片語書按鈕渲染 (新增字表與造句分流)
     function renderPhraseContent(week) {
         contentBtnGroup.innerHTML = '';
         document.getElementById('contentLabel').innerText = "3. 選擇內容";
-        // 字表為週次 * 2 - 1, 造句為週次 * 2
-        // 例如：第 1 週，字表播放 01.mp3, 造句播放 02.mp3
-        const types = [{l:'字表', i:week*2-1}, {l:'造句', i:week*2}];
-        types.forEach(t => {
+        [{l:'字表', i:week*2-1}, {l:'造句', i:week*2}].forEach(t => {
             const btn = document.createElement('button');
-            btn.className = 'action-btn';
-            btn.innerText = t.l;
+            btn.className = 'action-btn'; btn.innerText = t.l;
             btn.onclick = () => { state.currentIdx = t.i; playAudio(t.i, btn, `第 ${week} 週 - ${t.l}`); };
             contentBtnGroup.appendChild(btn);
         });
@@ -224,36 +267,22 @@
         resetAB();
     }
 
-    // 上一首 / 下一首
+    // --- 播放控制與 AB (保持不變) ---
     document.getElementById('nextTrackBtn').onclick = () => {
-        let max = (state.bookType === "vocab") ? 72 : 100; // 片語 50 週 * 2 = 100 檔
+        let max = (state.bookType === "vocab") ? 72 : 100;
         if(state.currentIdx < max) {
             state.currentIdx++;
-            let label = "";
-            if(state.bookType === "vocab") {
-                label = (state.currentIdx % 2 !== 0 ? "造句單元" : "附錄字表");
-            } else {
-                let w = Math.ceil(state.currentIdx / 2);
-                label = `第 ${w} 週 - ${state.currentIdx % 2 !== 0 ? '字表' : '造句'}`;
-            }
+            let label = (state.bookType === "vocab") ? (state.currentIdx % 2 !== 0 ? "造句單元" : "附錄字表") : `第 ${Math.ceil(state.currentIdx/2)} 週 - ${state.currentIdx % 2 !== 0 ? '字表' : '造句'}`;
             playAudio(state.currentIdx, null, label);
         }
     };
     document.getElementById('prevTrackBtn').onclick = () => {
         if(state.currentIdx > 1) {
             state.currentIdx--;
-            let label = "";
-            if(state.bookType === "vocab") {
-                label = (state.currentIdx % 2 !== 0 ? "造句單元" : "附錄字表");
-            } else {
-                let w = Math.ceil(state.currentIdx / 2);
-                label = `第 ${w} 週 - ${state.currentIdx % 2 !== 0 ? '字表' : '造句'}`;
-            }
+            let label = (state.bookType === "vocab") ? (state.currentIdx % 2 !== 0 ? "造句單元" : "附錄字表") : `第 ${Math.ceil(state.currentIdx/2)} 週 - ${state.currentIdx % 2 !== 0 ? '字表' : '造句'}`;
             playAudio(state.currentIdx, null, label);
         }
     };
-
-    // 播放控制與 AB 邏輯保持原樣
     document.getElementById('speedBtn').onclick = () => {
         speedIdx = (speedIdx + 1) % speeds.length;
         mainAudio.playbackRate = speeds[speedIdx];
