@@ -3,86 +3,100 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>課程音檔教材庫 - 全功能播放器</title>
+    <title>強咖這樣背 - 全功能播放器</title>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
         body { font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; padding: 20px; line-height: 1.6; background-color: #f0f2f5; margin: 0; }
-        .container { max-width: 500px; margin: 20px auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
-        h2 { color: #1a73e8; text-align: center; margin-bottom: 25px; display: flex; align-items: center; justify-content: center; gap: 12px; }
-        .header-logo { height: 2.5em; width: auto; }
-        .book-cover { height: 2.5em; width: auto; border-radius: 4px; display: none; }
-        .form-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 8px; font-weight: bold; color: #5f6368; }
-        .book-options { display: flex; gap: 10px; margin-bottom: 10px; }
-        .book-btn { flex: 1; padding: 12px; border: 2px solid #dadce0; border-radius: 8px; background: white; color: #5f6368; font-weight: bold; cursor: pointer; }
-        .book-btn.active { background-color: #1a73e8; color: white; border-color: #1a73e8; }
-        select { width: 100%; padding: 12px; border: 2px solid #dadce0; border-radius: 8px; font-size: 16px; background-color: white; }
-        
-        /* 播放器樣式 */
-        .audio-player { margin-top: 30px; display: none; padding: 20px 0; position: relative; }
-        #audioTitle { font-weight: bold; color: #1967d2; display: block; text-align: center; margin-bottom: 35px; min-height: 1.2em; }
-        .speed-btn { position: absolute; top: -10px; left: 0; padding: 4px 12px; border-radius: 6px; border: none; background: #e8f0fe; color: #1a73e8; font-weight: bold; cursor: pointer; }
-        .player-seek-bar { position: relative; width: 100%; height: 75px; margin-bottom: 15px; }
-        .progress-container { width: 100%; height: 6px; background: #e0e0e0; border-radius: 3px; position: absolute; top: 35px; cursor: pointer; z-index: 10; }
-        .progress-bar { height: 100%; background: #2196F3; width: 0%; border-radius: 3px; position: absolute; z-index: 12; pointer-events: none; }
-        .progress-bar::after { content: ''; position: absolute; right: -7px; top: -4px; width: 14px; height: 14px; background: #2196F3; border-radius: 50%; }
-        .ab-range-highlight { height: 100%; background: rgba(255, 204, 128, 0.5); position: absolute; display: none; z-index: 11; }
-        .marker-label { position: absolute; top: 5px; display: none; color: #EF6C00; font-weight: bold; font-size: 13px; transform: translateX(-50%); z-index: 13; }
-        .marker-label::after { content: ''; position: absolute; left: 50%; top: 16px; width: 1px; height: 22px; background: #EF6C00; }
-        .time-display { position: absolute; bottom: 0; width: 100%; display: flex; justify-content: space-between; font-size: 13px; color: #5f6368; font-family: monospace; }
+        .container { max-width: 550px; margin: 20px auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        .header-area { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 25px; }
+        .logo-img { height: 50px; width: auto; }
+        .book-cover-img { height: 60px; width: auto; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: none; }
+        h2 { color: #1a73e8; margin: 0; font-size: 24px; white-space: nowrap; }
+        .form-group { margin-bottom: 25px; }
+        label { display: block; margin-bottom: 12px; font-weight: bold; color: #5f6368; border-left: 4px solid #1a73e8; padding-left: 8px; }
+        .btn-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 10px; }
+        .action-btn { padding: 12px; border: 2px solid #dadce0; border-radius: 8px; background: white; color: #5f6368; font-weight: bold; cursor: pointer; font-size: 14px; }
+        .action-btn.active { background-color: #1a73e8; color: white; border-color: #1a73e8; }
+        select { width: 100%; padding: 12px; border: 2px solid #dadce0; border-radius: 8px; font-size: 16px; cursor: pointer; background-color: #fff; }
 
-        /* 控制按鈕組 */
-        .main-controls { display: flex; justify-content: space-between; align-items: center; margin: 20px 0 30px; }
-        .ctrl-btn { border: none; background: none; color: #5f6368; font-size: 30px; cursor: pointer; }
-        #playPauseBtn { font-size: 50px; color: #2196F3; }
-        .ab-set-group { display: flex; justify-content: space-around; border-top: 1px solid #dadce0; padding-top: 20px; }
-        .ab-set-btn { border: 1px solid #1a73e8; border-radius: 20px; padding: 8px 18px; background: white; color: #1a73e8; cursor: pointer; font-size: 13px; font-weight: bold; }
-        .ab-set-btn.active { background: #1a73e8; color: white; }
+        /* 播放器 UI */
+        .audio-player { margin-top: 30px; display: none; padding: 45px 20px 20px; background: white; border-radius: 12px; position: relative; border-top: 1px solid #eee; box-shadow: 0 -5px 15px rgba(0,0,0,0.03); }
+        #audioTitle { font-weight: bold; color: #1a73e8; display: block; text-align: center; margin-bottom: 25px; font-size: 14px; height: 1.2em; }
+        .player-top-ctrls { position: absolute; top: 10px; width: calc(100% - 40px); display: flex; justify-content: space-between; align-items: center; }
+        .speed-pill { background: #e8f0fe; color: #1a73e8; padding: 6px 16px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; font-size: 14px; }
+        
+        .player-seek-bar { position: relative; width: 100%; height: 50px; margin-top: 20px; }
+        .progress-container { width: 100%; height: 4px; background: #e0e0e0; position: absolute; top: 25px; cursor: pointer; }
+        .progress-bar { height: 100%; background: #1a73e8; width: 0%; position: relative; pointer-events: none; }
+        .progress-bar::after { content: ''; position: absolute; right: -6px; top: -5px; width: 14px; height: 14px; background: #1a73e8; border-radius: 50%; }
+        .ab-marker { position: absolute; top: 5px; color: #EF6C00; font-weight: bold; font-size: 12px; transform: translateX(-50%); display: none; z-index: 5; }
+        .ab-highlight { height: 100%; background: rgba(255, 152, 0, 0.3); position: absolute; top: 0; display: none; pointer-events: none; }
+        .time-display { display: flex; justify-content: space-between; font-size: 13px; color: #5f6368; margin-top: 35px; font-family: monospace; }
+
+        .main-controls { display: flex; justify-content: center; align-items: center; gap: 15px; margin: 15px 0; }
+        .ctrl-btn { border: none; background: none; color: #3c4043; font-size: 32px; cursor: pointer; }
+        #playPauseBtn { font-size: 55px; color: #1a73e8; }
+        
+        .ab-set-group { display: flex; justify-content: space-around; gap: 8px; margin-top: 20px; padding-top: 15px; border-top: 1px dashed #ddd; }
+        .ab-set-btn { flex: 1; border: 1px solid #dadce0; border-radius: 8px; padding: 10px 5px; background: white; color: #5f6368; cursor: pointer; font-size: 13px; font-weight: bold; }
+        .ab-set-btn.active { background: #fff7e6; color: #EF6C00; border-color: #EF6C00; }
+        .clear-btn { color: #d93025; border-color: #fad2cf; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2><img src="LOGO.png" alt="Logo" class="header-logo">📖 單字強咖<img id="bookCover" class="book-cover" src=""></h2>
+    <div class="header-area">
+        <img src="LOGO.png" alt="Logo" class="logo-img">
+        <h2>強咖這樣背</h2>
+        <img id="dynamicCover" src="" alt="Cover" class="book-cover-img">
+    </div>
 
     <div class="form-group">
-        <label>1. 選擇單字書 (Book)</label>
-        <div class="book-options">
-            <button class="book-btn" data-value="Book1">BOOK 1</button>
-            <button class="book-btn" data-value="Book2">BOOK 2</button>
-            <button class="book-btn" data-value="Book3">BOOK 3</button>
+        <label>1. 選擇教材</label>
+        <div class="btn-grid" style="grid-template-columns: repeat(3, 1fr);">
+            <button class="action-btn book-btn" data-type="vocab" data-value="Book1" data-cover="BOOK1封面.png">Book 1</button>
+            <button class="action-btn book-btn" data-type="vocab" data-value="Book2" data-cover="BOOK2封面.png">Book 2</button>
+            <button class="action-btn book-btn" data-type="vocab" data-value="Book3" data-cover="BOOK3封面.png">Book 3</button>
+            <button class="action-btn book-btn" data-type="phrase" data-value="PhraseUp" data-cover="片語強咖這樣背上冊封面.png" style="grid-column: span 1.5; background: #fff7e6;">片語(上)</button>
+            <button class="action-btn book-btn" data-type="phrase" data-value="PhraseDown" data-cover="片語強咖這樣背下冊封面.png" style="grid-column: span 1.5; background: #fff7e6;">片語(下)</button>
         </div>
     </div>
 
     <div class="form-group">
-        <label for="weekSelect">2. 選擇週次</label>
-        <select id="weekSelect" disabled><option value="">-- 請先選擇單字書 --</option></select>
+        <label>2. 選擇週次</label>
+        <select id="weekSelect" disabled><option value="">-- 請先選擇教材 --</option></select>
     </div>
 
-    <div class="form-group">
-        <label for="unitSelect">3. 選擇單元</label>
-        <select id="unitSelect" disabled><option value="">-- 請先選擇週次 --</option></select>
+    <div class="form-group" id="unitArea" style="display:none;">
+        <label>3. 選擇單元</label>
+        <div id="unitBtnGroup" class="btn-grid"></div>
     </div>
 
-    <div class="form-group">
-        <label for="audioSelect">4. 播放內容</label>
-        <select id="audioSelect" disabled><option value="">-- 請先選擇單元 --</option></select>
+    <div class="form-group" id="contentArea" style="display:none;">
+        <label id="contentLabel">4. 播放內容</label>
+        <div id="contentBtnGroup" class="btn-grid"></div>
     </div>
 
     <div id="playerSection" class="audio-player">
-        <button id="speedBtn" class="speed-btn">1.0x</button>
-        <span id="audioTitle"></span>
+        <div class="player-top-ctrls">
+            <button id="speedBtn" class="speed-pill">1.0x</button>
+            <span style="font-size: 12px; color: #999;">AB 複讀模式</span>
+        </div>
+
+        <span id="audioTitle">準備播放...</span>
+
         <div class="player-seek-bar">
-            <div class="marker-label" id="labelA">A</div>
-            <div class="marker-label" id="labelB">B</div>
+            <div id="markerA" class="ab-marker">A</div>
+            <div id="markerB" class="ab-marker">B</div>
             <div class="progress-container" id="progressContainer">
-                <div class="ab-range-highlight" id="abRangeHighlight"></div>
+                <div id="abHighlight" class="ab-highlight"></div>
                 <div class="progress-bar" id="progressBar"></div>
             </div>
             <div class="time-display"><span id="currentTime">00:00</span><span id="durationTime">00:00</span></div>
         </div>
 
-        <audio id="mainAudio" preload="metadata"></audio>
+        <audio id="mainAudio"></audio>
 
         <div class="main-controls">
             <button class="ctrl-btn material-icons" id="prevTrackBtn">skip_previous</button>
@@ -93,159 +107,200 @@
         </div>
 
         <div class="ab-set-group">
-            <button id="btnA" class="ab-set-btn">標記 A 點</button>
-            <button id="btnB" class="ab-set-btn">標記 B 點</button>
-            <button id="btnReset" class="ab-set-btn" style="border-color: #d93025; color: #d93025;">重置</button>
+            <button id="setABBtnA" class="ab-set-btn">標記 A 點</button>
+            <button id="setABBtnB" class="ab-set-btn">標記 B 點</button>
+            <button id="clearABBtn" class="ab-set-btn clear-btn">清除標記</button>
         </div>
     </div>
 </div>
 
 <script>
     const mainAudio = document.getElementById('mainAudio');
-    const progressBar = document.getElementById('progressBar');
-    const abRangeHighlight = document.getElementById('abRangeHighlight');
-    const playPauseBtn = document.getElementById('playPauseBtn');
-    const speedBtn = document.getElementById('speedBtn');
-    const audioSelect = document.getElementById('audioSelect');
+    const weekSelect = document.getElementById('weekSelect');
+    const unitArea = document.getElementById('unitArea');
+    const unitBtnGroup = document.getElementById('unitBtnGroup');
+    const contentArea = document.getElementById('contentArea');
+    const contentBtnGroup = document.getElementById('contentBtnGroup');
+    const dynamicCover = document.getElementById('dynamicCover');
     
-    let pointA = null, pointB = null, currentFileIndex = 1, selectedBook = "";
-    const speeds = [1.0, 1.2, 1.5, 0.6, 0.8];
-    let speedIndex = 0;
+    let state = { book: "", bookType: "", week: "", unit: "", currentIdx: 0 };
+    let pointA = null, pointB = null;
+    let speedIdx = 2; 
+    const speeds = [0.6, 0.8, 1.0, 1.2, 1.5];
 
-    const fmtTime = (s) => isNaN(s) ? "00:00" : `${Math.floor(s/60).toString().padStart(2,'0')}:${Math.floor(s%60).toString().padStart(2,'0')}`;
-
-    // 倍速與播放控制
-    speedBtn.onclick = () => {
-        speedIndex = (speedIndex + 1) % speeds.length;
-        mainAudio.playbackRate = speeds[speedIndex];
-        speedBtn.innerText = speeds[speedIndex].toFixed(1) + "x";
-    };
-
-    playPauseBtn.onclick = () => mainAudio.paused ? (mainAudio.play(), playPauseBtn.innerText = "pause_circle_filled") : (mainAudio.pause(), playPauseBtn.innerText = "play_circle_filled");
-    
-    // 改為 5 秒快進快退
-    document.getElementById('rewindBtn').onclick = () => mainAudio.currentTime -= 5;
-    document.getElementById('forwardBtn').onclick = () => mainAudio.currentTime += 5;
-
-    // 前後首功能
-    document.getElementById('prevTrackBtn').onclick = () => changeTrack(-1);
-    document.getElementById('nextTrackBtn').onclick = () => changeTrack(1);
-
-    function changeTrack(step) {
-        let newIndex = currentFileIndex + step;
-        if (newIndex >= 1 && newIndex <= 72) {
-            currentFileIndex = newIndex;
-            playByIndex(currentFileIndex);
-        }
-    }
-
-    // 當播放結束時自動下一首
-    mainAudio.onended = () => {
-        if (pointA !== null && pointB !== null) return; // 正在復讀則不跳歌
-        changeTrack(1);
-    };
-
-    function playByIndex(index) {
-        const fileName = `${selectedBook}_${index.toString().padStart(2, '0')}.mp3`;
-        const unitNum = Math.ceil(index / 2);
-        const type = index % 2 === 0 ? "附錄字表" : "造句單元";
-        
-        document.getElementById('audioTitle').innerText = `Unit ${unitNum} ${type}`;
-        mainAudio.src = fileName;
-        mainAudio.load();
-        mainAudio.play();
-        playPauseBtn.innerText = "pause_circle_filled";
-        resetAB();
-        syncSelectors(index); // 同步更新下拉選單
-    }
-
-    function syncSelectors(index) {
-        const unitNum = Math.ceil(index / 2);
-        const weekNum = Math.ceil(unitNum / 2) + (selectedBook === "Book2" ? 18 : selectedBook === "Book3" ? 36 : 0);
-        document.getElementById('weekSelect').value = weekNum;
-        document.getElementById('weekSelect').dispatchEvent(new Event('change'));
-        document.getElementById('unitSelect').value = unitNum;
-        document.getElementById('unitSelect').dispatchEvent(new Event('change'));
-        audioSelect.value = `${selectedBook}_${index.toString().padStart(2, '0')}.mp3`;
-    }
-
-    // 進度條邏輯
-    mainAudio.ontimeupdate = () => {
-        if (!mainAudio.duration) return;
-        document.getElementById('currentTime').innerText = fmtTime(mainAudio.currentTime);
-        document.getElementById('durationTime').innerText = fmtTime(mainAudio.duration);
-        progressBar.style.width = (mainAudio.currentTime / mainAudio.duration) * 100 + "%";
-        if (pointA !== null && pointB !== null && mainAudio.currentTime >= pointB) mainAudio.currentTime = pointA;
-        updateMarkers();
-    };
-
-    document.getElementById('progressContainer').onclick = (e) => {
-        const rect = e.currentTarget.getBoundingClientRect();
-        mainAudio.currentTime = ((e.clientX - rect.left) / rect.width) * mainAudio.duration;
-    };
-
-    // AB 復讀標記
-    document.getElementById('btnA').onclick = () => { pointA = mainAudio.currentTime; document.getElementById('btnA').classList.add('active'); };
-    document.getElementById('btnB').onclick = () => {
-        if (pointA === null) return alert("先設 A");
-        pointB = mainAudio.currentTime;
-        if (pointB <= pointA) return alert("B 須在 A 後");
-        document.getElementById('btnB').classList.add('active');
-    };
-    document.getElementById('btnReset').onclick = resetAB;
-    function resetAB() { pointA = null; pointB = null; document.getElementById('btnA').classList.remove('active'); document.getElementById('btnB').classList.remove('active'); updateMarkers(); }
-
-    function updateMarkers() {
-        if (!mainAudio.duration) return;
-        if (pointA !== null) { document.getElementById('labelA').style.left = (pointA/mainAudio.duration)*100+"%"; document.getElementById('labelA').style.display = 'block'; }
-        else document.getElementById('labelA').style.display = 'none';
-        if (pointB !== null) {
-            const s = (pointA/mainAudio.duration)*100, e = (pointB/mainAudio.duration)*100;
-            document.getElementById('labelB').style.left = e+"%"; document.getElementById('labelB').style.display = 'block';
-            abRangeHighlight.style.left = s+"%"; abRangeHighlight.style.width = (e-s)+"%"; abRangeHighlight.style.display = 'block';
-        } else { document.getElementById('labelB').style.display = 'none'; abRangeHighlight.style.display = 'none'; }
-    }
-
-    // 初始化選單連動
+    // 書籍選擇
     document.querySelectorAll('.book-btn').forEach(btn => {
         btn.onclick = function() {
             document.querySelectorAll('.book-btn').forEach(b => b.classList.remove('active'));
             this.classList.add('active');
-            selectedBook = this.getAttribute('data-value');
-            document.getElementById('bookCover').src = `${selectedBook.toUpperCase()}封面.png`;
-            document.getElementById('bookCover').style.display = 'inline-block';
-            const s = document.getElementById('weekSelect'); s.disabled = false;
-            s.innerHTML = '<option value="">-- 選擇週次 --</option>';
-            const start = selectedBook === "Book1" ? 1 : selectedBook === "Book2" ? 19 : 37;
-            for(let i=0; i<18; i++) s.innerHTML += `<option value="${start+i}">第 ${start+i} 週</option>`;
+            state.book = this.getAttribute('data-value');
+            state.bookType = this.getAttribute('data-type');
+            dynamicCover.src = this.getAttribute('data-cover');
+            dynamicCover.style.display = 'block';
+            weekSelect.disabled = false;
+            weekSelect.innerHTML = '<option value="">-- 選擇週次 --</option>';
+            
+            let start, end;
+            if (state.book === "PhraseUp") { start = 1; end = 25; }
+            else if (state.book === "PhraseDown") { start = 26; end = 50; }
+            else { 
+                start = state.book === "Book1" ? 1 : state.book === "Book2" ? 19 : 37;
+                end = start + 17;
+            }
+            for(let i = start; i <= end; i++) weekSelect.innerHTML += `<option value="${i}">第 ${i} 週</option>`;
+            unitArea.style.display = 'none';
+            contentArea.style.display = 'none';
         };
     });
 
-    document.getElementById('weekSelect').onchange = function() {
-        const u = document.getElementById('unitSelect'); u.disabled = !this.value; u.innerHTML = '<option value="">-- 選擇單元 --</option>';
-        if (this.value) {
-            const w = parseInt(this.value);
-            for(let i=1; i<=2; i++) { let un = (w-1)*2+i; u.innerHTML += `<option value="${un}">Unit ${un}</option>`; }
+    // 週次選擇
+    weekSelect.onchange = function() {
+        if (!this.value) return;
+        state.week = parseInt(this.value);
+        if (state.bookType === "vocab") {
+            unitArea.style.display = 'block'; contentArea.style.display = 'none';
+            unitBtnGroup.innerHTML = '';
+            const uStart = (state.week - 1) * 2 + 1;
+            [uStart, uStart + 1].forEach(u => {
+                const btn = document.createElement('button');
+                btn.className = 'action-btn';
+                btn.innerText = `Unit ${u}`;
+                btn.onclick = () => {
+                    Array.from(unitBtnGroup.children).forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    state.unit = u; contentArea.style.display = 'block'; renderVocabContent(u);
+                };
+                unitBtnGroup.appendChild(btn);
+            });
+        } else {
+            // 片語書邏輯：直接顯示字表與造句
+            unitArea.style.display = 'none'; 
+            contentArea.style.display = 'block';
+            renderPhraseContent(state.week);
         }
     };
 
-    document.getElementById('unitSelect').onchange = function() {
-        audioSelect.disabled = !this.value; audioSelect.innerHTML = '<option value="">-- 選擇類型 --</option>';
-        if (this.value) {
-            const un = parseInt(this.value);
-            const rel = ((un-1)%36)+1;
-            audioSelect.innerHTML += `<option value="${selectedBook}_${(rel*2-1).toString().padStart(2,'0')}.mp3">Unit ${un} 造句</option>`;
-            audioSelect.innerHTML += `<option value="${selectedBook}_${(rel*2).toString().padStart(2,'0')}.mp3">Unit ${un} 字表</option>`;
+    // 單字書按鈕渲染
+    function renderVocabContent(unitNum) {
+        contentBtnGroup.innerHTML = '';
+        document.getElementById('contentLabel').innerText = "4. 播放內容";
+        [{l:'造句單元', i:unitNum*2-1}, {l:'附錄字表', i:unitNum*2}].forEach(t => {
+            const btn = document.createElement('button');
+            btn.className = 'action-btn';
+            btn.innerText = t.l;
+            btn.onclick = () => { state.currentIdx = t.i; playAudio(t.i, btn, t.l); };
+            contentBtnGroup.appendChild(btn);
+        });
+    }
+
+    // 片語書按鈕渲染 (新增字表與造句分流)
+    function renderPhraseContent(week) {
+        contentBtnGroup.innerHTML = '';
+        document.getElementById('contentLabel').innerText = "3. 選擇內容";
+        // 字表為週次 * 2 - 1, 造句為週次 * 2
+        // 例如：第 1 週，字表播放 01.mp3, 造句播放 02.mp3
+        const types = [{l:'字表', i:week*2-1}, {l:'造句', i:week*2}];
+        types.forEach(t => {
+            const btn = document.createElement('button');
+            btn.className = 'action-btn';
+            btn.innerText = t.l;
+            btn.onclick = () => { state.currentIdx = t.i; playAudio(t.i, btn, `第 ${week} 週 - ${t.l}`); };
+            contentBtnGroup.appendChild(btn);
+        });
+    }
+
+    function playAudio(index, btn, label) {
+        if(btn) {
+            Array.from(contentBtnGroup.children).forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+        state.currentIdx = index;
+        const fileName = `${state.book}_${index.toString().padStart(2, '0')}.mp3`;
+        document.getElementById('audioTitle').innerText = `${state.book} - ${label || '正在切換...'}`;
+        mainAudio.src = fileName;
+        mainAudio.load(); mainAudio.play();
+        document.getElementById('playerSection').style.display = 'block';
+        document.getElementById('playPauseBtn').innerText = "pause_circle_filled";
+        resetAB();
+    }
+
+    // 上一首 / 下一首
+    document.getElementById('nextTrackBtn').onclick = () => {
+        let max = (state.bookType === "vocab") ? 72 : 100; // 片語 50 週 * 2 = 100 檔
+        if(state.currentIdx < max) {
+            state.currentIdx++;
+            let label = "";
+            if(state.bookType === "vocab") {
+                label = (state.currentIdx % 2 !== 0 ? "造句單元" : "附錄字表");
+            } else {
+                let w = Math.ceil(state.currentIdx / 2);
+                label = `第 ${w} 週 - ${state.currentIdx % 2 !== 0 ? '字表' : '造句'}`;
+            }
+            playAudio(state.currentIdx, null, label);
+        }
+    };
+    document.getElementById('prevTrackBtn').onclick = () => {
+        if(state.currentIdx > 1) {
+            state.currentIdx--;
+            let label = "";
+            if(state.bookType === "vocab") {
+                label = (state.currentIdx % 2 !== 0 ? "造句單元" : "附錄字表");
+            } else {
+                let w = Math.ceil(state.currentIdx / 2);
+                label = `第 ${w} 週 - ${state.currentIdx % 2 !== 0 ? '字表' : '造句'}`;
+            }
+            playAudio(state.currentIdx, null, label);
         }
     };
 
-    audioSelect.onchange = function() {
-        if (this.value) {
-            currentFileIndex = parseInt(this.value.split('_')[1]);
-            playByIndex(currentFileIndex);
-            document.getElementById('playerSection').style.display = 'block';
-        }
+    // 播放控制與 AB 邏輯保持原樣
+    document.getElementById('speedBtn').onclick = () => {
+        speedIdx = (speedIdx + 1) % speeds.length;
+        mainAudio.playbackRate = speeds[speedIdx];
+        document.getElementById('speedBtn').innerText = speeds[speedIdx].toFixed(1) + "x";
     };
+    document.getElementById('playPauseBtn').onclick = function() {
+        if (mainAudio.paused) { mainAudio.play(); this.innerText = "pause_circle_filled"; }
+        else { mainAudio.pause(); this.innerText = "play_circle_filled"; }
+    };
+    document.getElementById('rewindBtn').onclick = () => mainAudio.currentTime -= 5;
+    document.getElementById('forwardBtn').onclick = () => mainAudio.currentTime += 5;
+    document.getElementById('setABBtnA').onclick = function() { pointA = mainAudio.currentTime; this.classList.add('active'); updateABVisuals(); };
+    document.getElementById('setABBtnB').onclick = function() {
+        if (pointA === null) return alert("請先標記 A 點");
+        pointB = mainAudio.currentTime; if (pointB <= pointA) return alert("B 點要在 A 之後");
+        this.classList.add('active'); updateABVisuals();
+    };
+    document.getElementById('clearABBtn').onclick = resetAB;
+    function resetAB() {
+        pointA = null; pointB = null;
+        document.getElementById('setABBtnA').classList.remove('active');
+        document.getElementById('setABBtnB').classList.remove('active');
+        updateABVisuals();
+    }
+    function updateABVisuals() {
+        const dur = mainAudio.duration || 0;
+        const markerA = document.getElementById('markerA'), markerB = document.getElementById('markerB'), highlight = document.getElementById('abHighlight');
+        if (pointA !== null && dur > 0) { markerA.style.left = (pointA/dur*100) + "%"; markerA.style.display = "block"; } else markerA.style.display = "none";
+        if (pointB !== null && dur > 0) {
+            markerB.style.left = (pointB/dur*100) + "%"; markerB.style.display = "block";
+            highlight.style.left = (pointA/dur*100) + "%"; highlight.style.width = ((pointB-pointA)/dur*100) + "%"; highlight.style.display = "block";
+        } else { markerB.style.display = "none"; highlight.style.display = "none"; }
+    }
+    mainAudio.ontimeupdate = () => {
+        if (!mainAudio.duration) return;
+        const cur = mainAudio.currentTime, dur = mainAudio.duration;
+        document.getElementById('currentTime').innerText = fmtTime(cur);
+        document.getElementById('durationTime').innerText = fmtTime(dur);
+        document.getElementById('progressBar').style.width = (cur/dur*100) + "%";
+        if (pointA !== null && pointB !== null && cur >= pointB) mainAudio.currentTime = pointA;
+        updateABVisuals();
+    };
+    document.getElementById('progressContainer').onclick = function(e) {
+        const rect = this.getBoundingClientRect();
+        mainAudio.currentTime = ((e.clientX - rect.left) / rect.width) * mainAudio.duration;
+    };
+    function fmtTime(s) { let m = Math.floor(s/60), sec = Math.floor(s%60); return `${m.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`; }
 </script>
 </body>
 </html>
