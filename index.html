@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>強咖這樣背 - 全功能播放器</title>
+    <title>強咖這樣背 - 強化計時版</title>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
         body { font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; padding: 20px; line-height: 1.6; background-color: #f0f2f5; margin: 0; }
@@ -17,30 +17,26 @@
         .label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
         label { font-weight: bold; color: #5f6368; border-left: 4px solid #1a73e8; padding-left: 8px; margin: 0; }
         
-        /* 倒數計時與 IP 標記樣式 */
-        .timer-display { color: #d93025; font-weight: bold; font-family: monospace; font-size: 16px; background: #fce8e6; padding: 2px 8px; border-radius: 4px; }
-        .ip-marker { font-size: 13px; color: #1a73e8; background: #e8f0fe; padding: 2px 8px; border-radius: 20px; font-weight: bold; }
+        .timer-display { color: #d93025; font-weight: bold; font-family: monospace; font-size: 18px; background: #fce8e6; padding: 4px 12px; border-radius: 6px; border: 1px solid #fad2cf; }
+        .ip-marker { font-size: 13px; color: #1a73e8; background: #e8f0fe; padding: 2px 10px; border-radius: 20px; font-weight: bold; border: 1px solid #c2d7fa; }
 
         .btn-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 10px; }
         .action-btn { padding: 12px; border: 2px solid #dadce0; border-radius: 8px; background: white; color: #5f6368; font-weight: bold; cursor: pointer; font-size: 14px; transition: all 0.2s ease; }
         .phrase-btn-style { background-color: #fdf5e6 !important; border-color: #f5deb3; }
-        .action-btn.active { background-color: #1a73e8 !important; color: #ffffff !important; border-color: #1a73e8 !important; box-shadow: 0 2px 8px rgba(26, 115, 232, 0.4); text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+        .action-btn.active { background-color: #1a73e8 !important; color: #ffffff !important; border-color: #1a73e8 !important; box-shadow: 0 2px 8px rgba(26, 115, 232, 0.4); }
 
         select { width: 100%; padding: 12px; border: 2px solid #dadce0; border-radius: 8px; font-size: 16px; cursor: pointer; background-color: #fff; }
 
-        /* 播放器 UI */
         .audio-player { margin-top: 30px; display: none; padding: 45px 20px 20px; background: white; border-radius: 12px; position: relative; border-top: 1px solid #eee; }
-        #audioTitle { font-weight: bold; color: #1a73e8; display: block; text-align: center; margin-bottom: 25px; font-size: 14px; height: 1.2em; }
+        #audioTitle { font-weight: bold; color: #1a73e8; display: block; text-align: center; margin-bottom: 20px; font-size: 14px; min-height: 1.2em; }
         .player-top-ctrls { position: absolute; top: 10px; width: calc(100% - 40px); display: flex; justify-content: space-between; align-items: center; }
         .speed-pill { background: #e8f0fe; color: #1a73e8; padding: 6px 16px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; font-size: 14px; }
         
-        .player-seek-bar { position: relative; width: 100%; height: 50px; margin-top: 20px; }
-        .progress-container { width: 100%; height: 4px; background: #e0e0e0; position: absolute; top: 25px; cursor: pointer; }
-        .progress-bar { height: 100%; background: #1a73e8; width: 0%; position: relative; pointer-events: none; }
-        .progress-bar::after { content: ''; position: absolute; right: -6px; top: -5px; width: 14px; height: 14px; background: #1a73e8; border-radius: 50%; }
-        .ab-marker { position: absolute; top: 5px; color: #EF6C00; font-weight: bold; font-size: 12px; transform: translateX(-50%); display: none; z-index: 5; }
-        .ab-highlight { height: 100%; background: rgba(255, 152, 0, 0.3); position: absolute; top: 0; display: none; pointer-events: none; }
-        .time-display { display: flex; justify-content: space-between; font-size: 13px; color: #5f6368; margin-top: 35px; font-family: monospace; }
+        .progress-container { width: 100%; height: 8px; background: #e0e0e0; border-radius: 4px; position: relative; cursor: pointer; margin: 20px 0; }
+        .progress-bar { height: 100%; background: #1a73e8; width: 0%; border-radius: 4px; position: relative; }
+        .ab-marker { position: absolute; top: -18px; color: #EF6C00; font-weight: bold; font-size: 12px; transform: translateX(-50%); display: none; }
+        .ab-highlight { height: 100%; background: rgba(255, 152, 0, 0.3); position: absolute; top: 0; display: none; border-radius: 4px; }
+        .time-display { display: flex; justify-content: space-between; font-size: 12px; color: #5f6368; font-family: monospace; }
 
         .main-controls { display: flex; justify-content: center; align-items: center; gap: 15px; margin: 15px 0; }
         .ctrl-btn { border: none; background: none; color: #3c4043; font-size: 32px; cursor: pointer; }
@@ -49,7 +45,6 @@
         .ab-set-group { display: flex; justify-content: space-around; gap: 8px; margin-top: 20px; padding-top: 15px; border-top: 1px dashed #ddd; }
         .ab-set-btn { flex: 1; border: 1px solid #dadce0; border-radius: 8px; padding: 10px 5px; background: white; color: #5f6368; cursor: pointer; font-size: 13px; font-weight: bold; }
         .ab-set-btn.active { background: #fff7e6; color: #EF6C00; border-color: #EF6C00; }
-        .clear-btn { color: #d93025; border-color: #fad2cf; }
     </style>
 </head>
 <body>
@@ -64,7 +59,7 @@
     <div class="form-group">
         <div class="label-row">
             <label>1. 選擇教材</label>
-            <div id="userMarker" class="ip-marker">正在載入標記...</div>
+            <div id="userMarker" class="ip-marker">...</div>
         </div>
         <div class="btn-grid" style="grid-template-columns: repeat(3, 1fr);">
             <button class="action-btn book-btn" data-type="vocab" data-value="Book1" data-cover="BOOK1封面.png">Book 1</button>
@@ -96,240 +91,205 @@
     <div id="playerSection" class="audio-player">
         <div class="player-top-ctrls">
             <button id="speedBtn" class="speed-pill">1.0x</button>
-            <span style="font-size: 12px; color: #999;">AB 複讀模式</span>
+            <span style="font-size: 11px; color: #999;">AB 模式已啟動</span>
         </div>
-        <span id="audioTitle">準備播放...</span>
-        <div class="player-seek-bar">
-            <div id="markerA" class="ab-marker">A</div>
-            <div id="markerB" class="ab-marker">B</div>
-            <div class="progress-container" id="progressContainer">
-                <div id="abHighlight" class="ab-highlight"></div>
-                <div class="progress-bar" id="progressBar"></div>
-            </div>
-            <div class="time-display"><span id="currentTime">00:00</span><span id="durationTime">00:00</span></div>
+        <span id="audioTitle"></span>
+        <div class="progress-container" id="progressContainer">
+            <div id="abHighlight" class="ab-highlight"></div>
+            <div id="progressBar" class="progress-bar"></div>
+            <div id="markerA" class="ab-marker">▼A</div>
+            <div id="markerB" class="ab-marker">▼B</div>
         </div>
+        <div class="time-display"><span id="currentTime">00:00</span><span id="durationTime">00:00</span></div>
         <audio id="mainAudio"></audio>
         <div class="main-controls">
-            <button class="ctrl-btn material-icons" id="prevTrackBtn">skip_previous</button>
-            <button class="ctrl-btn material-icons" id="rewindBtn">replay_5</button>
-            <button id="playPauseBtn" class="ctrl-btn material-icons">play_circle_filled</button>
-            <button class="ctrl-btn material-icons" id="forwardBtn">forward_5</button>
-            <button class="ctrl-btn material-icons" id="nextTrackBtn">skip_next</button>
+            <button class="ctrl-btn material-icons" onclick="skipTrack(-1)">skip_previous</button>
+            <button class="ctrl-btn material-icons" onclick="mainAudio.currentTime-=5">replay_5</button>
+            <button id="playPauseBtn" class="ctrl-btn material-icons" onclick="togglePlay()">play_circle_filled</button>
+            <button class="ctrl-btn material-icons" onclick="mainAudio.currentTime+=5">forward_5</button>
+            <button class="ctrl-btn material-icons" onclick="skipTrack(1)">skip_next</button>
         </div>
         <div class="ab-set-group">
-            <button id="setABBtnA" class="ab-set-btn">標記 A 點</button>
-            <button id="setABBtnB" class="ab-set-btn">標記 B 點</button>
-            <button id="clearABBtn" class="ab-set-btn clear-btn">清除標記</button>
+            <button id="setABBtnA" class="ab-set-btn" onclick="setPoint('A')">標記 A 點</button>
+            <button id="setABBtnB" class="ab-set-btn" onclick="setPoint('B')">標記 B 點</button>
+            <button class="ab-set-btn" style="color:#d93025;" onclick="resetAB()">清除標記</button>
         </div>
     </div>
 </div>
 
 <script>
     const mainAudio = document.getElementById('mainAudio');
-    const weekSelect = document.getElementById('weekSelect');
-    const unitArea = document.getElementById('unitArea');
-    const unitBtnGroup = document.getElementById('unitBtnGroup');
-    const contentArea = document.getElementById('contentArea');
-    const contentBtnGroup = document.getElementById('contentBtnGroup');
-    const dynamicCover = document.getElementById('dynamicCover');
-    
-    let state = { book: "", bookType: "", week: "", unit: "", currentIdx: 0 };
+    let state = { book: "", bookType: "", week: 0, currentIdx: 1 };
     let pointA = null, pointB = null;
-    let speedIdx = 2; 
-    const speeds = [0.6, 0.8, 1.0, 1.2, 1.5];
-
-    // --- 倒數計時功能 ---
-    let timeLeft = 600; // 10分鐘 = 600秒
+    let timeLeft = 600;
     let timerId = null;
 
-    function startTimer() {
-        if (timerId) return;
-        timerId = setInterval(() => {
-            if (timeLeft > 0) {
-                timeLeft--;
-                updateTimerDisplay();
-            } else {
-                clearInterval(timerId);
-                timerId = null;
-                alert("恭喜過關！！🥳");
-            }
-        }, 1000);
+    // --- 強制啟動計時器函式 ---
+    function startCountdown() {
+        if (!timerId && !mainAudio.paused) {
+            console.log("計時器啟動");
+            timerId = setInterval(() => {
+                if (timeLeft > 0) {
+                    timeLeft--;
+                    updateTimerUI();
+                } else {
+                    stopCountdown();
+                    alert("恭喜過關！！🥳");
+                }
+            }, 1000);
+        }
     }
 
-    function stopTimer() {
+    function stopCountdown() {
         clearInterval(timerId);
         timerId = null;
     }
 
-    function updateTimerDisplay() {
+    function updateTimerUI() {
         const m = Math.floor(timeLeft / 60);
         const s = timeLeft % 60;
-        document.getElementById('countdown').innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        document.getElementById('countdown').innerText = `${m}:${s.toString().padStart(2, '0')}`;
     }
 
-    // --- 防偽標記功能 ---
-    function initUserMarker() {
-        const animals = ['🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐸','🐵','🐔','🐧','🐦','🐤','🦆','🦅','🦉','🦇','🐺','🐗','🐴','🦄','🐝','🐛','🦋','🐌','🐞','🐜','🦟','🦗','🕷','🕸','🦂','🐢','🐍','🦎','🐙','🦑','🦐','🦞','🦀','🐡','🐠','🐟','🐬','🐳','🐋','🦈','🐊','🐅','🐆','🦓','🦍','🦧','🐘','🦛','🦏','🐪','🐫','🦒','🦘','🐃','🐂','🐄','🐎','🐖','🐏','🐑','🐐','🦌','🐕','🐩','🐈','🐓','🦃','🦚','🦜','🦢','🦩','🐇','🦝','🦨','🦡','🦦','🦥','🐁','🐀','🐿','🦔'];
+    // --- 監聽播放狀態 ---
+    mainAudio.addEventListener('play', startCountdown);
+    mainAudio.addEventListener('pause', stopCountdown);
+    mainAudio.addEventListener('ended', stopCountdown);
+    // 預防機制：播放中若計時器沒跑，強迫補啟動
+    mainAudio.addEventListener('timeupdate', () => {
+        if (!mainAudio.paused && !timerId) startCountdown();
+        updateProgressUI();
+    });
+
+    // --- 初始化隨機標記 ---
+    (function initMarker() {
+        const animals = ['🐶','🐱','🦁','🦊','🐼','🐨','🐯','🐸','🐷','🐥','🦄'];
         const randomAnimal = animals[Math.floor(Math.random() * animals.length)];
-        
-        // 獲取簡單識別碼 (使用隨機數模擬 IP 後三碼，或透過 API 獲取)
-        // 為了展示方便，這裡先產生一個隨機 3 位數。若要真實 IP，需調用第三方服務。
-        const randomIPPart = Math.floor(Math.random() * 900 + 100); 
-        document.getElementById('userMarker').innerText = `${randomAnimal} ${randomIPPart}`;
-    }
-    initUserMarker();
+        const fakeIP = Math.floor(Math.random() * 899 + 100);
+        document.getElementById('userMarker').innerText = `${randomAnimal} ${fakeIP}`;
+    })();
 
-    // 監聽播放狀態連動計時器
-    mainAudio.onplay = startTimer;
-    mainAudio.onpause = stopTimer;
-    mainAudio.onended = stopTimer;
-
-    // --- 教材聯動邏輯 (保留您原有的功能) ---
+    // --- 介面聯動 ---
     document.querySelectorAll('.book-btn').forEach(btn => {
         btn.onclick = function() {
             document.querySelectorAll('.book-btn').forEach(b => b.classList.remove('active'));
             this.classList.add('active');
-            state.book = this.getAttribute('data-value');
-            state.bookType = this.getAttribute('data-type');
-            dynamicCover.src = this.getAttribute('data-cover');
-            dynamicCover.style.display = 'block';
-            weekSelect.disabled = false;
-            weekSelect.innerHTML = '<option value="">-- 選擇週次 --</option>';
-            let start, end;
-            if (state.book === "PhraseUp") { start = 1; end = 25; }
-            else if (state.book === "PhraseDown") { start = 26; end = 50; }
-            else { 
-                start = state.book === "Book1" ? 1 : state.book === "Book2" ? 19 : 37;
-                end = start + 17;
-            }
-            for(let i = start; i <= end; i++) weekSelect.innerHTML += `<option value="${i}">第 ${i} 週</option>`;
-            unitArea.style.display = 'none'; contentArea.style.display = 'none';
-        };
+            state.book = this.dataset.value;
+            state.bookType = this.dataset.type;
+            document.getElementById('dynamicCover').src = this.dataset.cover;
+            document.getElementById('dynamicCover').style.display = 'block';
+            const ws = document.getElementById('weekSelect');
+            ws.disabled = false;
+            ws.innerHTML = '<option value="">-- 選擇週次 --</option>';
+            let start = 1, end = 50;
+            if(state.book === "Book1") { start = 1; end = 18; }
+            else if(state.book === "Book2") { start = 19; end = 36; }
+            else if(state.book === "Book3") { start = 37; end = 54; }
+            else if(state.book === "PhraseUp") { start = 1; end = 25; }
+            else if(state.book === "PhraseDown") { start = 26; end = 50; }
+            for(let i=start; i<=end; i++) ws.innerHTML += `<option value="${i}">第 ${i} 週</option>`;
+            document.getElementById('unitArea').style.display = 'none';
+            document.getElementById('contentArea').style.display = 'none';
+        }
     });
 
-    weekSelect.onchange = function() {
-        if (!this.value) return;
+    document.getElementById('weekSelect').onchange = function() {
         state.week = parseInt(this.value);
-        if (state.bookType === "vocab") {
-            unitArea.style.display = 'block'; contentArea.style.display = 'none';
-            unitBtnGroup.innerHTML = '';
+        if(state.bookType === "vocab") {
+            document.getElementById('unitArea').style.display = 'block';
+            const group = document.getElementById('unitBtnGroup'); group.innerHTML = '';
             const uStart = (state.week - 1) * 2 + 1;
-            [uStart, uStart + 1].forEach(u => {
-                const btn = document.createElement('button');
-                btn.className = 'action-btn'; btn.innerText = `Unit ${u}`;
-                btn.onclick = () => {
-                    Array.from(unitBtnGroup.children).forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    state.unit = u; contentArea.style.display = 'block'; renderVocabContent(u);
+            [uStart, uStart+1].forEach(u => {
+                const b = document.createElement('button'); b.className='action-btn'; b.innerText=`Unit ${u}`;
+                b.onclick = () => {
+                    Array.from(group.children).forEach(x=>x.classList.remove('active')); b.classList.add('active');
+                    state.unit = u; renderContentBtns(u, true);
                 };
-                unitBtnGroup.appendChild(btn);
+                group.appendChild(b);
             });
         } else {
-            unitArea.style.display = 'none'; contentArea.style.display = 'block';
-            renderPhraseContent(state.week);
+            renderContentBtns(state.week, false);
         }
     };
 
-    function renderVocabContent(unitNum) {
-        contentBtnGroup.innerHTML = '';
-        document.getElementById('contentLabel').innerText = "4. 播放內容";
-        [{l:'造句單元', i:unitNum*2-1}, {l:'附錄字表', i:unitNum*2}].forEach(t => {
-            const btn = document.createElement('button');
-            btn.className = 'action-btn'; btn.innerText = t.l;
-            btn.onclick = () => { state.currentIdx = t.i; playAudio(t.i, btn, t.l); };
-            contentBtnGroup.appendChild(btn);
+    function renderContentBtns(num, isVocab) {
+        document.getElementById('contentArea').style.display = 'block';
+        const group = document.getElementById('contentBtnGroup'); group.innerHTML = '';
+        const labels = isVocab ? ['造句單元','附錄字表'] : ['字表','造句'];
+        labels.forEach((l, idx) => {
+            const b = document.createElement('button'); b.className='action-btn'; b.innerText = l;
+            const fileIdx = num * 2 - (idx === 0 ? 1 : 0);
+            b.onclick = () => playFile(fileIdx, b, l);
+            group.appendChild(b);
         });
     }
 
-    function renderPhraseContent(week) {
-        contentBtnGroup.innerHTML = '';
-        document.getElementById('contentLabel').innerText = "3. 選擇內容";
-        [{l:'字表', i:week*2-1}, {l:'造句', i:week*2}].forEach(t => {
-            const btn = document.createElement('button');
-            btn.className = 'action-btn'; btn.innerText = t.l;
-            btn.onclick = () => { state.currentIdx = t.i; playAudio(t.i, btn, `第 ${week} 週 - ${t.l}`); };
-            contentBtnGroup.appendChild(btn);
-        });
-    }
-
-    function playAudio(index, btn, label) {
-        if(btn) {
-            Array.from(contentBtnGroup.children).forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-        }
-        state.currentIdx = index;
-        const fileName = `${state.book}_${index.toString().padStart(2, '0')}.mp3`;
-        document.getElementById('audioTitle').innerText = `${state.book} - ${label || '正在切換...'}`;
+    function playFile(idx, btn, label) {
+        state.currentIdx = idx;
+        if(btn) { Array.from(btn.parentElement.children).forEach(x=>x.classList.remove('active')); btn.classList.add('active'); }
+        const fileName = `${state.book}_${idx.toString().padStart(2, '0')}.mp3`;
+        document.getElementById('audioTitle').innerText = `${state.book} - ${label}`;
         mainAudio.src = fileName;
-        mainAudio.load(); mainAudio.play();
+        mainAudio.play().catch(() => { document.getElementById('audioTitle').innerText = "❌ 檔案未找到: " + fileName; });
         document.getElementById('playerSection').style.display = 'block';
-        document.getElementById('playPauseBtn').innerText = "pause_circle_filled";
         resetAB();
     }
 
-    // --- 播放控制與 AB (保持不變) ---
-    document.getElementById('nextTrackBtn').onclick = () => {
-        let max = (state.bookType === "vocab") ? 72 : 100;
-        if(state.currentIdx < max) {
-            state.currentIdx++;
-            let label = (state.bookType === "vocab") ? (state.currentIdx % 2 !== 0 ? "造句單元" : "附錄字表") : `第 ${Math.ceil(state.currentIdx/2)} 週 - ${state.currentIdx % 2 !== 0 ? '字表' : '造句'}`;
-            playAudio(state.currentIdx, null, label);
-        }
+    // --- 播放控制 ---
+    function togglePlay() { mainAudio.paused ? mainAudio.play() : mainAudio.pause(); }
+    mainAudio.onplay = () => { document.getElementById('playPauseBtn').innerText = "pause_circle_filled"; startCountdown(); };
+    mainAudio.onpause = () => { document.getElementById('playPauseBtn').innerText = "play_circle_filled"; stopCountdown(); };
+
+    function skipTrack(dir) {
+        let nextIdx = state.currentIdx + dir;
+        if(nextIdx < 1) return;
+        let isOdd = nextIdx % 2 !== 0;
+        let label = (state.bookType === "vocab") ? (isOdd ? "造句單元" : "附錄字表") : (isOdd ? "字表" : "造句");
+        playFile(nextIdx, null, label);
+    }
+
+    document.getElementById('speedBtn').onclick = function() {
+        const rates = [1.0, 1.2, 1.5, 0.8];
+        let idx = rates.indexOf(mainAudio.playbackRate);
+        mainAudio.playbackRate = rates[(idx + 1) % rates.length];
+        this.innerText = mainAudio.playbackRate + "x";
     };
-    document.getElementById('prevTrackBtn').onclick = () => {
-        if(state.currentIdx > 1) {
-            state.currentIdx--;
-            let label = (state.bookType === "vocab") ? (state.currentIdx % 2 !== 0 ? "造句單元" : "附錄字表") : `第 ${Math.ceil(state.currentIdx/2)} 週 - ${state.currentIdx % 2 !== 0 ? '字表' : '造句'}`;
-            playAudio(state.currentIdx, null, label);
-        }
-    };
-    document.getElementById('speedBtn').onclick = () => {
-        speedIdx = (speedIdx + 1) % speeds.length;
-        mainAudio.playbackRate = speeds[speedIdx];
-        document.getElementById('speedBtn').innerText = speeds[speedIdx].toFixed(1) + "x";
-    };
-    document.getElementById('playPauseBtn').onclick = function() {
-        if (mainAudio.paused) { mainAudio.play(); this.innerText = "pause_circle_filled"; }
-        else { mainAudio.pause(); this.innerText = "play_circle_filled"; }
-    };
-    document.getElementById('rewindBtn').onclick = () => mainAudio.currentTime -= 5;
-    document.getElementById('forwardBtn').onclick = () => mainAudio.currentTime += 5;
-    document.getElementById('setABBtnA').onclick = function() { pointA = mainAudio.currentTime; this.classList.add('active'); updateABVisuals(); };
-    document.getElementById('setABBtnB').onclick = function() {
-        if (pointA === null) return alert("請先標記 A 點");
-        pointB = mainAudio.currentTime; if (pointB <= pointA) return alert("B 點要在 A 之後");
-        this.classList.add('active'); updateABVisuals();
-    };
-    document.getElementById('clearABBtn').onclick = resetAB;
+
+    // --- AB 與 進度 ---
+    function setPoint(type) {
+        if(type === 'A') { pointA = mainAudio.currentTime; document.getElementById('setABBtnA').classList.add('active'); }
+        else { pointB = mainAudio.currentTime; document.getElementById('setABBtnB').classList.add('active'); }
+        updateABUI();
+    }
     function resetAB() {
         pointA = null; pointB = null;
         document.getElementById('setABBtnA').classList.remove('active');
         document.getElementById('setABBtnB').classList.remove('active');
-        updateABVisuals();
+        updateABUI();
     }
-    function updateABVisuals() {
-        const dur = mainAudio.duration || 0;
-        const markerA = document.getElementById('markerA'), markerB = document.getElementById('markerB'), highlight = document.getElementById('abHighlight');
-        if (pointA !== null && dur > 0) { markerA.style.left = (pointA/dur*100) + "%"; markerA.style.display = "block"; } else markerA.style.display = "none";
-        if (pointB !== null && dur > 0) {
-            markerB.style.left = (pointB/dur*100) + "%"; markerB.style.display = "block";
-            highlight.style.left = (pointA/dur*100) + "%"; highlight.style.width = ((pointB-pointA)/dur*100) + "%"; highlight.style.display = "block";
-        } else { markerB.style.display = "none"; highlight.style.display = "none"; }
+    function updateABUI() {
+        const d = mainAudio.duration || 1;
+        document.getElementById('markerA').style.display = pointA !== null ? 'block' : 'none';
+        document.getElementById('markerA').style.left = (pointA/d*100)+'%';
+        document.getElementById('markerB').style.display = pointB !== null ? 'block' : 'none';
+        document.getElementById('markerB').style.left = (pointB/d*100)+'%';
+        const high = document.getElementById('abHighlight');
+        if(pointA!==null && pointB!==null) {
+            high.style.display = 'block'; high.style.left = (pointA/d*100)+'%'; high.style.width = ((pointB-pointA)/d*100)+'%';
+        } else high.style.display = 'none';
     }
-    mainAudio.ontimeupdate = () => {
-        if (!mainAudio.duration) return;
-        const cur = mainAudio.currentTime, dur = mainAudio.duration;
-        document.getElementById('currentTime').innerText = fmtTime(cur);
-        document.getElementById('durationTime').innerText = fmtTime(dur);
-        document.getElementById('progressBar').style.width = (cur/dur*100) + "%";
-        if (pointA !== null && pointB !== null && cur >= pointB) mainAudio.currentTime = pointA;
-        updateABVisuals();
-    };
-    document.getElementById('progressContainer').onclick = function(e) {
-        const rect = this.getBoundingClientRect();
+    function updateProgressUI() {
+        const cur = mainAudio.currentTime, dur = mainAudio.duration || 0;
+        document.getElementById('progressBar').style.width = (cur/dur*100)+'%';
+        document.getElementById('currentTime').innerText = formatT(cur);
+        document.getElementById('durationTime').innerText = formatT(dur);
+        if(pointA!==null && pointB!==null && cur >= pointB) mainAudio.currentTime = pointA;
+    }
+    document.getElementById('progressContainer').onclick = (e) => {
+        const rect = e.currentTarget.getBoundingClientRect();
         mainAudio.currentTime = ((e.clientX - rect.left) / rect.width) * mainAudio.duration;
     };
-    function fmtTime(s) { let m = Math.floor(s/60), sec = Math.floor(s%60); return `${m.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`; }
+    function formatT(s) { return Math.floor(s/60)+":"+Math.floor(s%60).toString().padStart(2,'0'); }
 </script>
 </body>
 </html>
