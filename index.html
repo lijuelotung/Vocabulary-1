@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>強咖這樣背 - 音檔修正版</title>
+    <title>強咖這樣背 - 完整功能版</title>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
         body { font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; padding: 20px; line-height: 1.6; background-color: #f0f2f5; margin: 0; }
@@ -38,8 +38,8 @@
         .ab-highlight { height: 100%; background: rgba(255, 152, 0, 0.3); position: absolute; top: 0; display: none; border-radius: 4px; }
         .time-display { display: flex; justify-content: space-between; font-size: 12px; color: #5f6368; font-family: monospace; }
 
-        .main-controls { display: flex; justify-content: center; align-items: center; gap: 15px; margin: 15px 0; }
-        .ctrl-btn { border: none; background: none; color: #3c4043; font-size: 32px; cursor: pointer; }
+        .main-controls { display: flex; justify-content: center; align-items: center; gap: 10px; margin: 15px 0; }
+        .ctrl-btn { border: none; background: none; color: #3c4043; font-size: 32px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         #playPauseBtn { font-size: 55px; color: #1a73e8; }
         
         .ab-set-group { display: flex; justify-content: space-around; gap: 8px; margin-top: 20px; padding-top: 15px; border-top: 1px dashed #ddd; }
@@ -102,11 +102,15 @@
         </div>
         <div class="time-display"><span id="currentTime">00:00</span><span id="durationTime">00:00</span></div>
         <audio id="mainAudio"></audio>
+        
         <div class="main-controls">
-            <button class="ctrl-btn material-icons" onclick="changeTrack(-1)">skip_previous</button>
+            <button class="ctrl-btn material-icons" onclick="changeTrack(-1)" title="上一首">skip_previous</button>
+            <button class="ctrl-btn material-icons" onclick="mainAudio.currentTime-=5" title="退後5秒">replay_5</button>
             <button id="playPauseBtn" class="ctrl-btn material-icons" onclick="togglePlay()">play_circle_filled</button>
-            <button class="ctrl-btn material-icons" onclick="changeTrack(1)">skip_next</button>
+            <button class="ctrl-btn material-icons" onclick="mainAudio.currentTime+=5" title="前進5秒">forward_5</button>
+            <button class="ctrl-btn material-icons" onclick="changeTrack(1)" title="下一首">skip_next</button>
         </div>
+
         <div class="ab-set-group">
             <button id="setABBtnA" class="ab-set-btn" onclick="setPoint('A')">標記 A 點</button>
             <button id="setABBtnB" class="ab-set-btn" onclick="setPoint('B')">標記 B 點</button>
@@ -122,7 +126,6 @@
     let timerId = null;
     let pointA = null, pointB = null;
 
-    // 隨機標記
     (function initMarker() {
         const animals = ['🐶','🐱','🦁','🦊','🐼','🐨','🐥'];
         const randomAnimal = animals[Math.floor(Math.random() * animals.length)];
@@ -130,7 +133,6 @@
         document.getElementById('userMarker').innerText = `${randomAnimal} ${fakeIP}`;
     })();
 
-    // 倒數計時
     function updateTimer() {
         if (timeLeft > 0) {
             timeLeft--;
@@ -143,7 +145,6 @@
         }
     }
 
-    // 教材選擇
     document.querySelectorAll('.book-btn').forEach(btn => {
         btn.onclick = function() {
             document.querySelectorAll('.book-btn').forEach(b => b.classList.remove('active'));
@@ -153,7 +154,6 @@
             state.startWeek = parseInt(this.dataset.start);
             document.getElementById('dynamicCover').src = this.dataset.cover;
             document.getElementById('dynamicCover').style.display = 'block';
-            
             const ws = document.getElementById('weekSelect');
             ws.disabled = false;
             ws.innerHTML = '<option value="">-- 選擇週次 --</option>';
@@ -167,13 +167,11 @@
         }
     });
 
-    // 週次選擇
     document.getElementById('weekSelect').onchange = function() {
         state.week = parseInt(this.value);
         if(state.bookType === 'vocab') {
             document.getElementById('unitArea').style.display = 'block';
             const group = document.getElementById('unitBtnGroup'); group.innerHTML = '';
-            // 計算該週次對應的 Unit (Book 1 從 1 開始, Book 2 從 37 開始...)
             const unitBase = (state.week - 1) * 2 + 1;
             [unitBase, unitBase + 1].forEach(u => {
                 const b = document.createElement('button'); b.className='action-btn'; b.innerText=`Unit ${u}`;
@@ -188,24 +186,17 @@
         }
     };
 
-    // 內容按鈕 (計算正確的 01.mp3, 02.mp3 等)
     function renderContentBtns(num, isVocab) {
         document.getElementById('contentArea').style.display = 'block';
         const group = document.getElementById('contentBtnGroup'); group.innerHTML = '';
         const labels = isVocab ? ['造句單元','附錄字表'] : ['字表','造句'];
-        
         labels.forEach((l, idx) => {
             const b = document.createElement('button'); b.className='action-btn'; b.innerText = l;
-            // 關鍵修正：計算相對於該冊的檔案編號
-            // 單字書：每一週 2 個單元，每個單元 2 個檔。
-            // 片語書：每一週 2 個檔。
             let fIdx;
             if(isVocab) {
-                // 單字書邏輯：(單元 - 該冊起始單元) * 2 + 1 或 2
                 const bookStartUnit = (state.startWeek - 1) * 2 + 1;
                 fIdx = (num - bookStartUnit) * 2 + (idx === 0 ? 1 : 2);
             } else {
-                // 片語書邏輯：(週次 - 該冊起始週次) * 2 + 1 或 2
                 fIdx = (num - state.startWeek) * 2 + (idx === 0 ? 1 : 2);
             }
             b.onclick = () => playFile(fIdx, b, l);
@@ -224,15 +215,12 @@
         resetAB();
     }
 
-    // 上一首下一首
     function changeTrack(dir) {
         let nextIdx = state.fileIdx + dir;
         if(nextIdx < 1) return;
-        let label = (nextIdx % 2 !== 0) ? "字表/造句" : "造句/字表";
-        playFile(nextIdx, null, label);
+        playFile(nextIdx, null, "正在切換...");
     }
 
-    // 播放控制
     function togglePlay() { mainAudio.paused ? mainAudio.play() : mainAudio.pause(); }
     mainAudio.onplay = () => { 
         document.getElementById('playPauseBtn').innerText = "pause_circle_filled"; 
@@ -243,7 +231,6 @@
         clearInterval(timerId); timerId = null;
     };
 
-    // 倍速切換
     document.getElementById('speedBtn').onclick = function() {
         const rates = [1.0, 1.2, 1.5, 0.8];
         let i = rates.indexOf(mainAudio.playbackRate);
@@ -251,7 +238,6 @@
         this.innerText = mainAudio.playbackRate + "x";
     };
 
-    // 進度條與 AB 邏輯
     function setPoint(type) {
         if(type === 'A') { pointA = mainAudio.currentTime; document.getElementById('setABBtnA').classList.add('active'); }
         else { pointB = mainAudio.currentTime; document.getElementById('setABBtnB').classList.add('active'); }
