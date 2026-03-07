@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>強咖這樣背 - 專業修正版</title>
+    <title>強咖這樣背 - 專業正式版</title>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
         body { font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; padding: 20px; line-height: 1.6; background-color: #f0f2f5; margin: 0; }
@@ -12,26 +12,20 @@
         .logo-img { height: 50px; width: auto; }
         .book-cover-img { height: 60px; width: auto; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: none; }
         h2 { color: #1a73e8; margin: 0; font-size: 24px; white-space: nowrap; }
-        
         .form-group { margin-bottom: 25px; }
         .label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
         label { font-weight: bold; color: #5f6368; border-left: 4px solid #1a73e8; padding-left: 8px; margin: 0; }
-        
-        .timer-display { color: #d93025; font-weight: bold; font-family: monospace; font-size: 18px; background: #fce8e6; padding: 4px 12px; border-radius: 6px; border: 1px solid #fad2cf; }
+        .timer-display { color: #d93025; font-weight: bold; font-family: monospace; font-size: 18px; background: #fce8e6; padding: 4px 12px; border-radius: 6px; border: 1px solid #fad2cf; transition: all 0.3s; }
+        .timer-count-up { color: #1a73e8 !important; background: #e8f0fe !important; border-color: #c2d7fa !important; }
         .ip-marker { font-size: 13px; color: #1a73e8; background: #e8f0fe; padding: 2px 10px; border-radius: 20px; font-weight: bold; border: 1px solid #c2d7fa; }
-
         .btn-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 10px; }
         .action-btn { padding: 12px; border: 2px solid #dadce0; border-radius: 8px; background: white; color: #5f6368; font-weight: bold; cursor: pointer; font-size: 14px; transition: all 0.2s ease; }
         .phrase-btn-style { background-color: #fdf5e6 !important; border-color: #f5deb3; }
         .action-btn.active { background-color: #1a73e8 !important; color: #ffffff !important; border-color: #1a73e8 !important; box-shadow: 0 2px 8px rgba(26, 115, 232, 0.4); }
-
         select { width: 100%; padding: 12px; border: 2px solid #dadce0; border-radius: 8px; font-size: 16px; cursor: pointer; background-color: #fff; }
-
         .quizlet-box { margin-top: 10px; padding: 15px; background: #eef4ff; border-radius: 8px; border: 1px dashed #1a73e8; text-align: center; }
         .quizlet-link { color: #1a73e8; text-decoration: none; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 10px; }
         .quizlet-img { height: 24px; width: auto; vertical-align: middle; }
-
-        /* 播放器樣式 */
         .audio-player { margin-top: 30px; padding: 20px; background: #fff; border-radius: 16px; box-shadow: 0 -5px 15px rgba(0,0,0,0.05); display: none; position: relative; }
         .player-top-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .speed-control { background: #e8f0fe; padding: 5px 12px; border-radius: 8px; color: #1a73e8; font-weight: bold; cursor: pointer; border: none; font-size: 14px; }
@@ -90,7 +84,7 @@
         <div id="contentBtnGroup" class="btn-grid"></div>
     </div>
 
-    <div class="form-group" id="quizletArea" style="display:none;">
+    <div id="quizletArea" class="form-group" style="display:none;">
         <label id="quizletTitle">5. Quizlet 練習</label>
         <div class="quizlet-box">
             <a id="quizletLink" class="quizlet-link" href="#" target="_blank">
@@ -132,24 +126,60 @@
 <script>
     const mainAudio = document.getElementById('mainAudio');
     let state = { bookName: "", bookCode: "", bookType: "", startWeek: 1, week: 0, fileIdx: 1, currentLabel: "", unit: 0, currentSpeed: 1.0 };
-    let timeLeft = 600, timerId = null, pointA = null, pointB = null;
+    
+    let timeLeft = 600; 
+    let totalElapsed = 601; 
+    let isCountDown = true;
+    let timerId = null;
+    let userIdentifier = "";
+    let pointA = null, pointB = null;
+    
     const speeds = [0.6, 0.8, 1.0, 1.2, 1.5];
 
-    // 完整資料庫
+    // Quizlet 資料庫，已同步改為 "Phrase 1" 與 "Phrase 2"
     const quizletData = {
         "Book1": {"1":"https://quizlet.com/tw/690520003/unit1-flash-cards/","2":"https://quizlet.com/tw/690520020/unit2-flash-cards/","3":"https://quizlet.com/tw/690520027/unit3-flash-cards/","4":"https://quizlet.com/tw/690520040/unit4-flash-cards/","5":"https://quizlet.com/tw/690520050/unit5-flash-cards/","6":"https://quizlet.com/tw/690519840/unit6-flash-cards/","7":"https://quizlet.com/tw/690520137/unit7-flash-cards/","8":"https://quizlet.com/tw/690520142/unit8-flash-cards/","9":"https://quizlet.com/tw/690520153/unit9-flash-cards/","10":"https://quizlet.com/tw/690520159/unit10-flash-cards/","11":"https://quizlet.com/tw/690520201/unit11-flash-cards/","12":"https://quizlet.com/tw/690519938/unit12-flash-cards/","13":"https://quizlet.com/tw/690520207/unit13-flash-cards/","14":"https://quizlet.com/tw/690520213/unit14-flash-cards/","15":"https://quizlet.com/tw/690520221/unit15-flash-cards/","16":"https://quizlet.com/tw/690520264/unit16-flash-cards/","17":"https://quizlet.com/tw/690520281/unit17-flash-cards/","18":"https://quizlet.com/tw/690520294/unit18-flash-cards/","19":"https://quizlet.com/tw/690520308/unit19-flash-cards/","20":"https://quizlet.com/tw/690520319/unit20-flash-cards/","21":"https://quizlet.com/tw/690520369/unit21-flash-cards/","22":"https://quizlet.com/tw/690520386/unit22-flash-cards/","23":"https://quizlet.com/tw/690520394/unit23-flash-cards/","24":"https://quizlet.com/tw/690520404/unit24-flash-cards/","25":"https://quizlet.com/tw/690520415/unit25-flash-cards/","26":"https://quizlet.com/tw/690520429/unit26-flash-cards/","27":"https://quizlet.com/tw/690520447/unit27-flash-cards/","28":"https://quizlet.com/tw/690520455/unit28-flash-cards/","29":"https://quizlet.com/tw/690520471/unit29-flash-cards/","30":"https://quizlet.com/tw/690520487/unit30-flash-cards/","31":"https://quizlet.com/tw/690520519/unit31-flash-cards/","32":"https://quizlet.com/tw/690520527/unit32-flash-cards/","33":"https://quizlet.com/tw/690520544/unit33-flash-cards/","34":"https://quizlet.com/tw/690520554/unit34-flash-cards/","35":"https://quizlet.com/tw/691238478/unit35-flash-cards/","36":"https://quizlet.com/tw/690520586/unit36-flash-cards/"},
         "Book2": {"37":"https://quizlet.com/tw/698231306/unit37-flash-cards/","38":"https://quizlet.com/tw/698231442/unit38-flash-cards/","39":"https://quizlet.com/tw/690520668/unit39-flash-cards/","40":"https://quizlet.com/tw/690520675/unit40-flash-cards/","41":"https://quizlet.com/tw/690520678/unit41-flash-cards/","42":"https://quizlet.com/tw/690520686/unit42-flash-cards/","43":"https://quizlet.com/tw/690520734/unit43-flash-cards/","44":"https://quizlet.com/tw/690520743/unit44-flash-cards/","45":"https://quizlet.com/tw/690520748/unit45-flash-cards/","46":"https://quizlet.com/tw/690520756/unit46-flash-cards/","47":"https://quizlet.com/tw/690520764/unit47-flash-cards/","48":"https://quizlet.com/tw/690520774/unit48-flash-cards/","49":"https://quizlet.com/tw/690520781/unit49-flash-cards/","50":"https://quizlet.com/tw/690520788/unit50-flash-cards/","51":"https://quizlet.com/tw/690520855/unit51-flash-cards/","52":"https://quizlet.com/tw/690520867/unit52-flash-cards/","53":"https://quizlet.com/tw/690520877/unit53-flash-cards/","54":"https://quizlet.com/tw/690520884/unit54-flash-cards/","55":"https://quizlet.com/tw/690520896/unit55-flash-cards/","56":"https://quizlet.com/tw/690520903/unit56-flash-cards/","57":"https://quizlet.com/tw/690520907/unit57-flash-cards/","58":"https://quizlet.com/tw/690520914/unit58-flash-cards/","59":"https://quizlet.com/tw/690520921/unit59-flash-cards/","60":"https://quizlet.com/tw/690520925/unit60-flash-cards/","61":"https://quizlet.com/tw/690520989/unit61-flash-cards/","62":"https://quizlet.com/tw/690520993/unit62-flash-cards/","63":"https://quizlet.com/tw/690520999/unit63-flash-cards/","64":"https://quizlet.com/tw/690521005/unit64-flash-cards/","65":"https://quizlet.com/tw/690521013/unit65-flash-cards/","66":"https://quizlet.com/tw/690522321/unit66-flash-cards/","67":"https://quizlet.com/tw/690522341/unit67-flash-cards/","68":"https://quizlet.com/tw/690522353/unit68-flash-cards/","69":"https://quizlet.com/tw/690522363/unit69-flash-cards/","70":"https://quizlet.com/tw/690522377/unit70-flash-cards/","71":"https://quizlet.com/tw/690522382/unit71-flash-cards/","72":"https://quizlet.com/tw/690522391/unit72-flash-cards/"},
         "Book3": {"73":"https://quizlet.com/tw/690525631/unit73-flash-cards/","74":"https://quizlet.com/tw/690525656/unit74-flash-cards/","75":"https://quizlet.com/tw/690525661/unit75-flash-cards/","76":"https://quizlet.com/tw/690525669/unit76-flash-cards/","77":"https://quizlet.com/tw/690525682/unit77-flash-cards/","78":"https://quizlet.com/tw/690525692/unit78-flash-cards/","79":"https://quizlet.com/tw/690525701/unit79-flash-cards/","80":"https://quizlet.com/tw/690525711/unit80-flash-cards/","81":"https://quizlet.com/tw/690525776/unit81-flash-cards/","82":"https://quizlet.com/tw/690525790/unit82-flash-cards/","83":"https://quizlet.com/tw/690525802/unit83-flash-cards/","84":"https://quizlet.com/tw/690525808/unit84-flash-cards/","85":"https://quizlet.com/tw/690525816/unit85-flash-cards/","86":"https://quizlet.com/tw/690525817/unit86-flash-cards/","87":"https://quizlet.com/tw/690525826/unit87-flash-cards/","88":"https://quizlet.com/tw/690525834/unit88-flash-cards/","89":"https://quizlet.com/tw/690525847/unit89-flash-cards/","90":"https://quizlet.com/tw/690525853/unit90-flash-cards/","91":"https://quizlet.com/tw/690525962/unit91-flash-cards/","92":"https://quizlet.com/tw/690525977/unit92-flash-cards/","93":"https://quizlet.com/tw/690525983/unit93-flash-cards/","94":"https://quizlet.com/tw/690525992/unit94-flash-cards/","95":"https://quizlet.com/tw/690526002/unit95-flash-cards/","96":"https://quizlet.com/tw/690526009/unit96-flash-cards/","97":"https://quizlet.com/tw/690526021/unit97-flash-cards/","98":"https://quizlet.com/tw/690526029/unit98-flash-cards/","99":"https://quizlet.com/tw/690526035/unit99-flash-cards/","100":"https://quizlet.com/tw/690526043/unit100-flash-cards/","101":"https://quizlet.com/tw/690526296/unit101-flash-cards/","102":"https://quizlet.com/tw/690526309/unit102-flash-cards/","103":"https://quizlet.com/tw/690526318/unit103-flash-cards/","104":"https://quizlet.com/tw/690526328/unit104-flash-cards/","105":"https://quizlet.com/tw/690526336/unit105-flash-cards/","106":"https://quizlet.com/tw/690526342/unit106-flash-cards/","107":"https://quizlet.com/tw/690526350/unit107-flash-cards/","108":"https://quizlet.com/tw/690526363/unit108-flash-cards/"},
-        "Appendix": {"1":"https://quizlet.com/tw/810760492/appendix-1-flash-cards/","2":"https://quizlet.com/tw/810760385/appendix-2-flash-cards/","3":"https://quizlet.com/tw/810760776/appendix-3-flash-cards/","4":"https://quizlet.com/tw/810760864/appendix-4-flash-cards/","5":"https://quizlet.com/tw/810761007/appendix-5-flash-cards/","6":"https://quizlet.com/tw/810761073/appendix-6-flash-cards/","7":"https://quizlet.com/tw/810761189/appendix-7-flash-cards/","8":"https://quizlet.com/tw/810761245/appendix-8-flash-cards/","9":"https://quizlet.com/tw/810761351/appendix-9-flash-cards/","10":"https://quizlet.com/tw/810761412/appendix-10-flash-cards/","11":"https://quizlet.com/tw/810761992/appendix-11-flash-cards/","12":"https://quizlet.com/tw/810762039/appendix-12-flash-cards/","13":"https://quizlet.com/tw/810762128/appendix-13-flash-cards/","14":"https://quizlet.com/tw/810762171/appendix-14-flash-cards/","15":"https://quizlet.com/tw/810762256/appendix-15-flash-cards/","16":"https://quizlet.com/tw/810762370/appendix-16-flash-cards/","17":"https://quizlet.com/tw/810762560/appendix-17-flash-cards/","18":"https://quizlet.com/tw/810762625/appendix-18-flash-cards/","19":"https://quizlet.com/tw/810763010/appendix-19-flash-cards/","20":"https://quizlet.com/tw/810763066/appendix-20-flash-cards/","21":"https://quizlet.com/tw/810763213/appendix-21-flash-cards/","22":"https://quizlet.com/tw/810763337/appendix-22-flash-cards/","23":"https://quizlet.com/tw/810763650/appendix-23-flash-cards/","24":"https://quizlet.com/tw/810763759/appendix-24-flash-cards/","25":"https://quizlet.com/tw/810764498/appendix-25-flash-cards/","26":"https://quizlet.com/tw/810764687/appendix-26-flash-cards/","27":"https://quizlet.com/tw/811131354/appendix-27-flash-cards/","28":"https://quizlet.com/tw/811131473/appendix-28-flash-cards/","29":"https://quizlet.com/tw/811131581/appendix-29-flash-cards/","30":"https://quizlet.com/tw/811131759/appendix-30-flash-cards/","31":"https://quizlet.com/tw/811131881/appendix-31-flash-cards/","32":"https://quizlet.com/tw/811132045/appendix-32-flash-cards/","33":"https://quizlet.com/tw/811132169/appendix-33-flash-cards/","34":"https://quizlet.com/tw/811132247/appendix-34-flash-cards/","35":"https://quizlet.com/tw/811132598/appendix-35-flash-cards/","36":"https://quizlet.com/tw/811132700/appendix-36-flash-cards/","37":"https://quizlet.com/tw/811132846/appendix-37-flash-cards/","38":"https://quizlet.com/tw/811132985/appendix-38-flash-cards/","39":"https://quizlet.com/tw/811133127/appendix-39-flash-cards/","40":"https://quizlet.com/tw/811133248/appendix-40-flash-cards/","41":"https://quizlet.com/tw/811133636/appendix-41-flash-cards/","42":"https://quizlet.com/tw/811133772/appendix-42-flash-cards/","43":"https://quizlet.com/tw/811133905/appendix-43-flash-cards/","44":"https://quizlet.com/tw/811134031/appendix-44-flash-cards/","45":"https://quizlet.com/tw/811134524/appendix-45-flash-cards/","46":"https://quizlet.com/tw/811134680/appendix-46-flash-cards/","47":"https://quizlet.com/tw/811134834/appendix-47-flash-cards/","48":"https://quizlet.com/tw/811134974/appendix-48-flash-cards/","49":"https://quizlet.com/tw/811135114/appendix-49-flash-cards/","50":"https://quizlet.com/tw/811135239/appendix-50-flash-cards/","51":"https://quizlet.com/tw/811135344/appendix-51-flash-cards/","52":"https://quizlet.com/tw/811135440/appendix-52-flash-cards/","53":"https://quizlet.com/tw/811135682/appendix-53-flash-cards/","54":"https://quizlet.com/tw/811135814/appendix-54-flash-cards/","55":"https://quizlet.com/tw/811135960/appendix-55-flash-cards/","56":"https://quizlet.com/tw/811760015/appendix-56-flash-cards/","57":"https://quizlet.com/tw/811141601/appendix-57-flash-cards/","58":"https://quizlet.com/tw/811141725/appendix-58-flash-cards/","59":"https://quizlet.com/tw/811142027/appendix-59-flash-cards/","60":"https://quizlet.com/tw/811142208/appendix-60-flash-cards/","61":"https://quizlet.com/tw/811147395/appendix-61-flash-cards/","62":"https://quizlet.com/tw/811147643/appendix-62-flash-cards/","63":"https://quizlet.com/tw/811152389/appendix-63-flash-cards/","64":"https://quizlet.com/tw/811152681/appendix-64-flash-cards/","65":"https://quizlet.com/tw/811152866/appendix-65-flash-cards/","66":"https://quizlet.com/tw/811153047/appendix-66-flash-cards/","67":"https://quizlet.com/tw/811153266/appendix-67-flash-cards/","68":"https://quizlet.com/tw/811153518/appendix-68-flash-cards/","69":"https://quizlet.com/tw/811154212/appendix-69-flash-cards/","70":"https://quizlet.com/tw/811154367/appendix-70-flash-cards/","71":"https://quizlet.com/tw/811154464/appendix-71-flash-cards/","72":"https://quizlet.com/tw/811154715/appendix-72-flash-cards/","73":"https://quizlet.com/tw/811154854/appendix-73-flash-cards/","74":"https://quizlet.com/tw/811154958/appendix-74-flash-cards/","75":"https://quizlet.com/tw/811155120/appendix-75-flash-cards/","76":"https://quizlet.com/tw/811155236/appendix-76-flash-cards/","77":"https://quizlet.com/tw/811155440/appendix-77-flash-cards/","78":"https://quizlet.com/tw/811155638/appendix-78-flash-cards/","79":"https://quizlet.com/tw/811155811/appendix-79-flash-cards/","80":"https://quizlet.com/tw/811156219/appendix-80-flash-cards/","81":"https://quizlet.com/tw/811156385/appendix-81-flash-cards/","82":"https://quizlet.com/tw/811156523/appendix-82-flash-cards/","83":"https://quizlet.com/tw/811156945/appendix-83-flash-cards/","84":"https://quizlet.com/tw/811157257/appendix-84-flash-cards/","85":"https://quizlet.com/tw/811157514/appendix-85-flash-cards/","86":"https://quizlet.com/tw/811157701/appendix-86-flash-cards/","87":"https://quizlet.com/tw/811157927/appendix-87-flash-cards/","88":"https://quizlet.com/tw/811158399/appendix-88-flash-cards/","89":"https://quizlet.com/tw/811158675/appendix-89-flash-cards/","90":"https://quizlet.com/tw/811158809/appendix-90-flash-cards/","91":"https://quizlet.com/tw/811672162/appendix-91-flash-cards/","92":"https://quizlet.com/tw/811672331/appendix-92-flash-cards/","93":"https://quizlet.com/tw/811672482/appendix-93-flash-cards/","94":"https://quizlet.com/tw/811672539/appendix-94-flash-cards/","95":"https://quizlet.com/tw/811672661/appendix-95-flash-cards/","96":"https://quizlet.com/tw/811672715/appendix-96-flash-cards/","97":"https://quizlet.com/tw/811672783/appendix-97-flash-cards/","98":"https://quizlet.com/tw/811672818/appendix-98-flash-cards/","99":"https://quizlet.com/tw/811672864/appendix-99-flash-cards/","100":"https://quizlet.com/tw/811672971/appendix-100-flash-cards/","101":"https://quizlet.com/tw/811673035/appendix-101-flash-cards/","102":"https://quizlet.com/tw/811673116/appendix-102-flash-cards/","103":"https://quizlet.com/tw/811673155/appendix-103-flash-cards/","104":"https://quizlet.com/tw/811673196/appendix-104-flash-cards/","105":"https://quizlet.com/tw/811673278/appendix-105-flash-cards/","106":"https://quizlet.com/tw/811673316/appendix-106-flash-cards/","107":"https://quizlet.com/tw/811673395/appendix-107-flash-cards/","108":"https://quizlet.com/tw/811673437/appendix-108-flash-cards/"}
+        "Phrase 1": {"1":"https://quizlet.com/tw/493885833/","2":"https://quizlet.com/tw/493887618/","3":"https://quizlet.com/tw/493889418/","4":"https://quizlet.com/tw/493890463/","5":"https://quizlet.com/tw/493891359/","6":"https://quizlet.com/tw/493892336/","7":"https://quizlet.com/tw/493893214/","8":"https://quizlet.com/tw/493894642/","9":"https://quizlet.com/tw/493895651/","10":"https://quizlet.com/tw/493898357/","11":"https://quizlet.com/tw/493900165/","12":"https://quizlet.com/tw/493900995/","13":"https://quizlet.com/tw/493901795/","14":"https://quizlet.com/tw/493902882/","15":"https://quizlet.com/tw/493903623/","16":"https://quizlet.com/tw/493931853/","17":"https://quizlet.com/tw/493933805/","18":"https://quizlet.com/tw/493936127/","19":"https://quizlet.com/tw/493937091/","20":"https://quizlet.com/tw/493937957/","21":"https://quizlet.com/tw/493938806/","22":"https://quizlet.com/tw/493939810/","23":"https://quizlet.com/tw/493940659/","24":"https://quizlet.com/tw/493941584/","25":"https://quizlet.com/tw/493942629/"},
+        "Phrase 2": {"26":"https://quizlet.com/tw/497490672/","27":"https://quizlet.com/tw/497492201/","28":"https://quizlet.com/tw/497493624/","29":"https://quizlet.com/tw/497495548/","30":"https://quizlet.com/tw/497497188/","31":"https://quizlet.com/tw/497498038/","32":"https://quizlet.com/tw/497499337/","33":"https://quizlet.com/tw/497502838/","34":"https://quizlet.com/tw/497504040/","35":"https://quizlet.com/tw/497506313/","36":"https://quizlet.com/tw/497532350/","37":"https://quizlet.com/tw/497623361/","38":"https://quizlet.com/tw/497625626/","39":"https://quizlet.com/tw/497626006/","40":"https://quizlet.com/tw/497626679/","41":"https://quizlet.com/tw/497628827/","42":"https://quizlet.com/tw/497632252/","43":"https://quizlet.com/tw/497630736/","44":"https://quizlet.com/tw/497631090/","45":"https://quizlet.com/tw/497631883/","46":"https://quizlet.com/tw/497633027/","47":"https://quizlet.com/tw/497634323/","48":"https://quizlet.com/tw/497634710/","49":"https://quizlet.com/tw/497639689/","50":"https://quizlet.com/tw/497640111/"}
     };
 
-    // 初始化與標記
     (function init() {
         const animals = ['🐶','🐱','🦁','🦊','🐼','🐨','🐥','🐸','🐙','🦄'];
-        document.getElementById('userMarker').innerText = `${animals[Math.floor(Math.random()*10)]} ${Math.floor(Math.random()*899+100)}`;
+        userIdentifier = `${animals[Math.floor(Math.random()*10)]} ${Math.floor(Math.random()*899+100)}`;
+        document.getElementById('userMarker').innerText = userIdentifier;
     })();
 
-    // 教材選擇
+    function startTimer() { if (!timerId) timerId = setInterval(updateTimer, 1000); }
+
+    function updateTimer() {
+        const timerEl = document.getElementById('countdown');
+        if (isCountDown) {
+            if (timeLeft > 0) {
+                timeLeft--;
+                renderTimer(timeLeft);
+            } else {
+                clearInterval(timerId);
+                timerId = null;
+                const unitText = state.bookType === 'vocab' ? `第 ${state.week} 週 (Unit ${state.unit})` : `第 ${state.week} 週`;
+                alert(`恭喜過關！ 🥳\n\n🔹 驗證標記：${userIdentifier}\n📖 教材：${state.bookName}\n📅 週次：${unitText}\n🎵 內容：${state.currentLabel}\n\n請截圖此畫面以供查驗。`);
+                isCountDown = false;
+                timerEl.classList.add('timer-count-up');
+                renderTimer(totalElapsed);
+                if (!mainAudio.paused) startTimer();
+            }
+        } else {
+            renderTimer(totalElapsed);
+            totalElapsed++;
+        }
+    }
+
+    function renderTimer(s) {
+        let m = Math.floor(s/60), sec = s%60;
+        document.getElementById('countdown').innerText = `${m}:${sec.toString().padStart(2,'0')}`;
+    }
+
     document.querySelectorAll('.book-btn').forEach(btn => {
         btn.onclick = function() {
             document.querySelectorAll('.book-btn').forEach(b => b.classList.remove('active'));
@@ -158,12 +188,10 @@
             state.bookType = this.dataset.type; state.startWeek = parseInt(this.dataset.start);
             document.getElementById('dynamicCover').src = this.dataset.cover;
             document.getElementById('dynamicCover').style.display = 'block';
-            
             const ws = document.getElementById('weekSelect'); ws.disabled = false;
             ws.innerHTML = '<option value="">-- 選擇週次 --</option>';
             let count = (state.bookType === 'vocab') ? 18 : 25;
             for(let i=0; i<count; i++) ws.innerHTML += `<option value="${state.startWeek+i}">第 ${state.startWeek+i} 週</option>`;
-            
             document.getElementById('unitArea').style.display = 'none';
             document.getElementById('contentArea').style.display = 'none';
             document.getElementById('quizletArea').style.display = 'none';
@@ -184,7 +212,10 @@
                 };
                 group.appendChild(b);
             });
-        } else { renderContentBtns(state.week, false); }
+        } else { 
+            renderContentBtns(state.week, false); 
+            updateQuizlet('phrase', state.week);
+        }
     };
 
     function renderContentBtns(num, isVocab) {
@@ -203,21 +234,29 @@
     }
 
     function updateQuizlet(type, num) {
-        const url = (type === 'vocab') ? quizletData[state.bookCode][num] : quizletData['Appendix'][num];
+        let url = null;
+        if(type === 'phrase') {
+            url = quizletData[state.bookCode][num];
+            document.getElementById('quizletTitle').innerText = `5. Quizlet 練習 (Week ${num})`;
+        } else {
+            url = (type === 'vocab') ? quizletData[state.bookCode][num] : null;
+            document.getElementById('quizletTitle').innerText = `5. Quizlet 練習 (${type==='vocab'?'Unit':'App.'} ${num})`;
+        }
         if(url) {
             document.getElementById('quizletLink').href = url;
-            document.getElementById('quizletTitle').innerText = `5. Quizlet 練習 (${type==='vocab'?'Unit':'App.'} ${num})`;
             document.getElementById('quizletArea').style.display = 'block';
+        } else {
+            document.getElementById('quizletArea').style.display = 'none';
         }
     }
 
-    // 播放功能
     function playFile(idx, btn, label) {
         state.fileIdx = idx; state.currentLabel = label;
         if(btn) { Array.from(btn.parentElement.children).forEach(x=>x.classList.remove('active')); btn.classList.add('active'); }
-        mainAudio.src = `${state.bookCode}_${idx.toString().padStart(2, '0')}.mp3`;
+        // 修正重點：組合帶有空格的檔名
+        const fileName = `${state.bookCode}_${idx.toString().padStart(2, '0')}.mp3`;
+        mainAudio.src = fileName;
         document.getElementById('audioTitle').innerText = label;
-        mainAudio.playbackRate = state.currentSpeed;
         mainAudio.play();
         document.getElementById('playerSection').style.display = 'block';
         resetAB();
@@ -257,9 +296,8 @@
     };
 
     function togglePlay() { mainAudio.paused ? mainAudio.play() : mainAudio.pause(); }
-    mainAudio.onplay = () => { document.getElementById('playPauseBtn').innerText = "pause_circle_filled"; if(!timerId) timerId = setInterval(updateTimer, 1000); };
+    mainAudio.onplay = () => { document.getElementById('playPauseBtn').innerText = "pause_circle_filled"; startTimer(); };
     mainAudio.onpause = () => { document.getElementById('playPauseBtn').innerText = "play_circle_filled"; clearInterval(timerId); timerId = null; };
-    function updateTimer() { if(timeLeft>0) { timeLeft--; let m=Math.floor(timeLeft/60), s=timeLeft%60; document.getElementById('countdown').innerText=`${m}:${s.toString().padStart(2,'0')}`; } }
     function fmt(s){ return Math.floor(s/60)+":"+Math.floor(s%60).toString().padStart(2,'0'); }
     function changeTrack(dir) { playFile(state.fileIdx+dir, null, "切換中..."); }
 </script>
