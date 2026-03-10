@@ -16,7 +16,6 @@
         .label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
         label { font-weight: bold; color: #5f6368; border-left: 4px solid #1a73e8; padding-left: 8px; margin: 0; }
         .timer-display { color: #d93025; font-weight: bold; font-family: monospace; font-size: 18px; background: #fce8e6; padding: 4px 12px; border-radius: 6px; border: 1px solid #fad2cf; transition: all 0.3s; }
-        /* 正計時模式的藍色樣式 */
         .timer-count-up { color: #1a73e8 !important; background: #e8f0fe !important; border-color: #c2d7fa !important; }
         .ip-marker { font-size: 13px; color: #1a73e8; background: #e8f0fe; padding: 2px 10px; border-radius: 20px; font-weight: bold; border: 1px solid #c2d7fa; }
         .btn-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 10px; }
@@ -95,6 +94,16 @@
         </div>
     </div>
 
+    <div id="dailyAudioArea" class="form-group" style="display:none;">
+        <label id="dailyAudioTitle">6. 每日英語聽力</label>
+        <div class="quizlet-box" style="border-color: #34a853; background: #e6f4ea;">
+            <a id="dailyAudioLink" class="dailyAudio-link quizlet-link" href="#" target="_blank" style="color: #1e8e3e;">
+                <span class="material-icons">headphones</span>
+                <span>開啟 每日英語聽力 練習</span>
+            </a>
+        </div>
+    </div>
+
     <div id="playerSection" class="audio-player">
         <div class="player-top-row">
             <button id="speedBtn" class="speed-control" onclick="cycleSpeed()">1.0x</button>
@@ -127,17 +136,15 @@
 <script>
     const mainAudio = document.getElementById('mainAudio');
     let state = { bookName: "", bookCode: "", bookType: "", startWeek: 1, week: 0, fileIdx: 1, currentLabel: "", unit: 0, currentSpeed: 1.0 };
-    
     let timeLeft = 600; 
     let totalElapsed = 0; 
     let isCountDown = true;
     let timerId = null;
     let userIdentifier = "";
     let pointA = null, pointB = null;
-    
     const speeds = [0.6, 0.8, 1.0, 1.2, 1.5];
 
-    // Quizlet 連結資料庫 (略，包含 Book1-3, Phrase 1-2, Appendix 1-108)
+    // Quizlet 連結資料庫 
     const quizletData = {
         "Book1": {"1":"https://quizlet.com/tw/690520003/unit1-flash-cards/","2":"https://quizlet.com/tw/690520020/unit2-flash-cards/","3":"https://quizlet.com/tw/690520027/unit3-flash-cards/","4":"https://quizlet.com/tw/690520040/unit4-flash-cards/","5":"https://quizlet.com/tw/690520050/unit5-flash-cards/","6":"https://quizlet.com/tw/690519840/unit6-flash-cards/","7":"https://quizlet.com/tw/690520137/unit7-flash-cards/","8":"https://quizlet.com/tw/690520142/unit8-flash-cards/","9":"https://quizlet.com/tw/690520153/unit9-flash-cards/","10":"https://quizlet.com/tw/690520159/unit10-flash-cards/","11":"https://quizlet.com/tw/690520201/unit11-flash-cards/","12":"https://quizlet.com/tw/690519938/unit12-flash-cards/","13":"https://quizlet.com/tw/690520207/unit13-flash-cards/","14":"https://quizlet.com/tw/690520213/unit14-flash-cards/","15":"https://quizlet.com/tw/690520221/unit15-flash-cards/","16":"https://quizlet.com/tw/690520264/unit16-flash-cards/","17":"https://quizlet.com/tw/690520281/unit17-flash-cards/","18":"https://quizlet.com/tw/690520294/unit18-flash-cards/","19":"https://quizlet.com/tw/690520308/unit19-flash-cards/","20":"https://quizlet.com/tw/690520319/unit20-flash-cards/","21":"https://quizlet.com/tw/690520369/unit21-flash-cards/","22":"https://quizlet.com/tw/690520386/unit22-flash-cards/","23":"https://quizlet.com/tw/690520394/unit23-flash-cards/","24":"https://quizlet.com/tw/690520404/unit24-flash-cards/","25":"https://quizlet.com/tw/690520415/unit25-flash-cards/","26":"https://quizlet.com/tw/690520429/unit26-flash-cards/","27":"https://quizlet.com/tw/690520447/unit27-flash-cards/","28":"https://quizlet.com/tw/690520455/unit28-flash-cards/","29":"https://quizlet.com/tw/690520471/unit29-flash-cards/","30":"https://quizlet.com/tw/690520487/unit30-flash-cards/","31":"https://quizlet.com/tw/690520519/unit31-flash-cards/","32":"https://quizlet.com/tw/690520527/unit32-flash-cards/","33":"https://quizlet.com/tw/690520544/unit33-flash-cards/","34":"https://quizlet.com/tw/690520554/unit34-flash-cards/","35":"https://quizlet.com/tw/691238478/unit35-flash-cards/","36":"https://quizlet.com/tw/690520586/unit36-flash-cards/"},
         "Book2": {"37":"https://quizlet.com/tw/698231306/unit37-flash-cards/","38":"https://quizlet.com/tw/698231442/unit38-flash-cards/","39":"https://quizlet.com/tw/690520668/unit39-flash-cards/","40":"https://quizlet.com/tw/690520675/unit40-flash-cards/","41":"https://quizlet.com/tw/690520678/unit41-flash-cards/","42":"https://quizlet.com/tw/690520686/unit42-flash-cards/","43":"https://quizlet.com/tw/690520734/unit43-flash-cards/","44":"https://quizlet.com/tw/690520743/unit44-flash-cards/","45":"https://quizlet.com/tw/690520748/unit45-flash-cards/","46":"https://quizlet.com/tw/690520756/unit46-flash-cards/","47":"https://quizlet.com/tw/690520764/unit47-flash-cards/","48":"https://quizlet.com/tw/690520774/unit48-flash-cards/","49":"https://quizlet.com/tw/690520781/unit49-flash-cards/","50":"https://quizlet.com/tw/690520788/unit50-flash-cards/","51":"https://quizlet.com/tw/690520855/unit51-flash-cards/","52":"https://quizlet.com/tw/690520867/unit52-flash-cards/","53":"https://quizlet.com/tw/690520877/unit53-flash-cards/","54":"https://quizlet.com/tw/690520884/unit54-flash-cards/","55":"https://quizlet.com/tw/690520896/unit55-flash-cards/","56":"https://quizlet.com/tw/690520903/unit56-flash-cards/","57":"https://quizlet.com/tw/690520907/unit57-flash-cards/","58":"https://quizlet.com/tw/690520914/unit58-flash-cards/","59":"https://quizlet.com/tw/690520921/unit59-flash-cards/","60":"https://quizlet.com/tw/690520925/unit60-flash-cards/","61":"https://quizlet.com/tw/690520989/unit61-flash-cards/","62":"https://quizlet.com/tw/690520993/unit62-flash-cards/","63":"https://quizlet.com/tw/690520999/unit63-flash-cards/","64":"https://quizlet.com/tw/690521005/unit64-flash-cards/","65":"https://quizlet.com/tw/690521013/unit65-flash-cards/","66":"https://quizlet.com/tw/690522321/unit66-flash-cards/","67":"https://quizlet.com/tw/690522341/unit67-flash-cards/","68":"https://quizlet.com/tw/690522353/unit68-flash-cards/","69":"https://quizlet.com/tw/690522363/unit69-flash-cards/","70":"https://quizlet.com/tw/690522377/unit70-flash-cards/","71":"https://quizlet.com/tw/690522382/unit71-flash-cards/","72":"https://quizlet.com/tw/690522391/unit72-flash-cards/"},
@@ -147,6 +154,123 @@
         "Appendix": {
             "1":"https://quizlet.com/tw/810760492/appendix-1-flash-cards/","2":"https://quizlet.com/tw/810760385/appendix-2-flash-cards/","3":"https://quizlet.com/tw/810760776/appendix-3-flash-cards/","4":"https://quizlet.com/tw/810760864/appendix-4-flash-cards/","5":"https://quizlet.com/tw/810761007/appendix-5-flash-cards/","6":"https://quizlet.com/tw/810761073/appendix-6-flash-cards/","7":"https://quizlet.com/tw/810761189/appendix-7-flash-cards/","8":"https://quizlet.com/tw/810761245/appendix-8-flash-cards/","9":"https://quizlet.com/tw/810761351/appendix-9-flash-cards/","10":"https://quizlet.com/tw/810761412/appendix-10-flash-cards/","11":"https://quizlet.com/tw/810761992/appendix-11-flash-cards/","12":"https://quizlet.com/tw/810762039/appendix-12-flash-cards/","13":"https://quizlet.com/tw/810762128/appendix-13-flash-cards/","14":"https://quizlet.com/tw/810762171/appendix-14-flash-cards/","15":"https://quizlet.com/tw/810762256/appendix-15-flash-cards/","16":"https://quizlet.com/tw/810762370/appendix-16-flash-cards/","17":"https://quizlet.com/tw/810762560/appendix-17-flash-cards/","18":"https://quizlet.com/tw/810762625/appendix-18-flash-cards/","19":"https://quizlet.com/tw/810763010/appendix-19-flash-cards/","20":"https://quizlet.com/tw/810763066/appendix-20-flash-cards/","21":"https://quizlet.com/tw/810763213/appendix-21-flash-cards/","22":"https://quizlet.com/tw/810763337/appendix-22-flash-cards/","23":"https://quizlet.com/tw/810763650/appendix-23-flash-cards/","24":"https://quizlet.com/tw/810763759/appendix-24-flash-cards/","25":"https://quizlet.com/tw/810764498/appendix-25-flash-cards/","26":"https://quizlet.com/tw/810764687/appendix-26-flash-cards/","27":"https://quizlet.com/tw/811131354/appendix-27-flash-cards/","28":"https://quizlet.com/tw/811131473/appendix-28-flash-cards/","29":"https://quizlet.com/tw/811131581/appendix-29-flash-cards/","30":"https://quizlet.com/tw/811131759/appendix-30-flash-cards/","31":"https://quizlet.com/tw/811131881/appendix-31-flash-cards/","32":"https://quizlet.com/tw/811132045/appendix-32-flash-cards/","33":"https://quizlet.com/tw/811132169/appendix-33-flash-cards/","34":"https://quizlet.com/tw/811132247/appendix-34-flash-cards/","35":"https://quizlet.com/tw/811132598/appendix-35-flash-cards/","36":"https://quizlet.com/tw/811132700/appendix-36-flash-cards/","37":"https://quizlet.com/tw/811132846/appendix-37-flash-cards/","38":"https://quizlet.com/tw/811132985/appendix-38-flash-cards/","39":"https://quizlet.com/tw/811133127/appendix-39-flash-cards/","40":"https://quizlet.com/tw/811133248/appendix-40-flash-cards/","41":"https://quizlet.com/tw/811133636/appendix-41-flash-cards/","42":"https://quizlet.com/tw/811133772/appendix-42-flash-cards/","43":"https://quizlet.com/tw/811133905/appendix-43-flash-cards/","44":"https://quizlet.com/tw/811134031/appendix-44-flash-cards/","45":"https://quizlet.com/tw/811134524/appendix-45-flash-cards/","46":"https://quizlet.com/tw/811134680/appendix-46-flash-cards/","47":"https://quizlet.com/tw/811134834/appendix-47-flash-cards/","48":"https://quizlet.com/tw/811134974/appendix-48-flash-cards/","49":"https://quizlet.com/tw/811135114/appendix-49-flash-cards/","50":"https://quizlet.com/tw/811135239/appendix-50-flash-cards/","51":"https://quizlet.com/tw/811135344/appendix-51-flash-cards/","52":"https://quizlet.com/tw/811135440/appendix-52-flash-cards/","53":"https://quizlet.com/tw/811135682/appendix-53-flash-cards/","54":"https://quizlet.com/tw/811135814/appendix-54-flash-cards/","55":"https://quizlet.com/tw/811135960/appendix-55-flash-cards/","56":"https://quizlet.com/tw/811760015/appendix-56-flash-cards/","57":"https://quizlet.com/tw/811141601/appendix-57-flash-cards/","58":"https://quizlet.com/tw/811141725/appendix-58-flash-cards/","59":"https://quizlet.com/tw/811142027/appendix-59-flash-cards/","60":"https://quizlet.com/tw/811142208/appendix-60-flash-cards/","61":"https://quizlet.com/tw/811147395/appendix-61-flash-cards/","62":"https://quizlet.com/tw/811147643/appendix-62-flash-cards/","63":"https://quizlet.com/tw/811152389/appendix-63-flash-cards/","64":"https://quizlet.com/tw/811152681/appendix-64-flash-cards/","65":"https://quizlet.com/tw/811152866/appendix-65-flash-cards/","66":"https://quizlet.com/tw/811153047/appendix-66-flash-cards/","67":"https://quizlet.com/tw/811153266/appendix-67-flash-cards/","68":"https://quizlet.com/tw/811153518/appendix-68-flash-cards/","69":"https://quizlet.com/tw/811154212/appendix-69-flash-cards/","70":"https://quizlet.com/tw/811154367/appendix-70-flash-cards/","71":"https://quizlet.com/tw/811154464/appendix-71-flash-cards/","72":"https://quizlet.com/tw/811154715/appendix-72-flash-cards/","73":"https://quizlet.com/tw/811154854/appendix-73-flash-cards/","74":"https://quizlet.com/tw/811154958/appendix-74-flash-cards/","75":"https://quizlet.com/tw/811155120/appendix-75-flash-cards/","76":"https://quizlet.com/tw/811155236/appendix-76-flash-cards/","77":"https://quizlet.com/tw/811155440/appendix-77-flash-cards/","78":"https://quizlet.com/tw/811155638/appendix-78-flash-cards/","79":"https://quizlet.com/tw/811155811/appendix-79-flash-cards/","80":"https://quizlet.com/tw/811156219/appendix-80-flash-cards/","81":"https://quizlet.com/tw/811156385/appendix-81-flash-cards/","82":"https://quizlet.com/tw/811156523/appendix-82-flash-cards/","83":"https://quizlet.com/tw/811156945/appendix-83-flash-cards/","84":"https://quizlet.com/tw/811157257/appendix-84-flash-cards/","85":"https://quizlet.com/tw/811157514/appendix-85-flash-cards/","86":"https://quizlet.com/tw/811157701/appendix-86-flash-cards/","87":"https://quizlet.com/tw/811157927/appendix-87-flash-cards/","88":"https://quizlet.com/tw/811158399/appendix-88-flash-cards/","89":"https://quizlet.com/tw/811158675/appendix-89-flash-cards/","90":"https://quizlet.com/tw/811158809/appendix-90-flash-cards/","91":"https://quizlet.com/tw/811672162/appendix-91-flash-cards/","92":"https://quizlet.com/tw/811672331/appendix-92-flash-cards/","93":"https://quizlet.com/tw/811672482/appendix-93-flash-cards/","94":"https://quizlet.com/tw/811672539/appendix-94-flash-cards/","95":"https://quizlet.com/tw/811672661/appendix-95-flash-cards/","96":"https://quizlet.com/tw/811672715/appendix-96-flash-cards/","97":"https://quizlet.com/tw/811672783/appendix-97-flash-cards/","98":"https://quizlet.com/tw/811672818/appendix-98-flash-cards/","99":"https://quizlet.com/tw/811672864/appendix-99-flash-cards/","100":"https://quizlet.com/tw/811672971/appendix-100-flash-cards/","101":"https://quizlet.com/tw/811673035/appendix-101-flash-cards/","102":"https://quizlet.com/tw/811673116/appendix-102-flash-cards/","103":"https://quizlet.com/tw/811673155/appendix-103-flash-cards/","104":"https://quizlet.com/tw/811673196/appendix-104-flash-cards/","105":"https://quizlet.com/tw/811673278/appendix-105-flash-cards/","106":"https://quizlet.com/tw/811673316/appendix-106-flash-cards/","107":"https://quizlet.com/tw/811673395/appendix-107-flash-cards/","108":"https://quizlet.com/tw/811673437/appendix-108-flash-cards/"
         }
+    };
+
+    // 每日英語聽力連結資料庫 
+    const dailyAudioData = {
+        "Book1": {
+            "1": "https://cn.eudic.net/ting/openArticle?id=dba03ddb-bd87-4c96-b350-0d5661b9ec04",
+            "2": "https://cn.eudic.net/ting/openArticle?id=fe3f0a43-bebd-417e-8fe8-2a0f9052b1aa",
+            "3": "https://cn.eudic.net/ting/openArticle?id=7d97dbaf-551b-490b-8265-5b3b88fb93f0",
+            "4": "https://cn.eudic.net/ting/openArticle?id=d9906c9d-3144-49b5-afc5-caf42ed6c51b",
+            "5": "https://cn.eudic.net/ting/openArticle?id=cdaf60c5-0f3c-4a5a-ae87-b0ab3987ad2a",
+            "6": "https://cn.eudic.net/ting/openArticle?id=059a28b4-5f0c-4aa5-b81d-30dfe36969f1",
+            "7": "https://cn.eudic.net/ting/openArticle?id=08a33709-9e48-4011-9cdc-9cdb0a486291",
+            "8": "https://cn.eudic.net/ting/openArticle?id=57ebf4a0-beba-4053-b1b7-6f0bccd2d068",
+            "9": "https://cn.eudic.net/ting/openArticle?id=8ec02d9b-2d61-4036-8d7d-6671617957c6",
+            "10": "https://cn.eudic.net/ting/openArticle?id=c149c06e-e7f4-4633-b434-607919c5b646",
+            "11": "https://cn.eudic.net/ting/openArticle?id=051029ba-6440-4a96-8d63-2c9e37b9ec39",
+            "12": "https://cn.eudic.net/ting/openArticle?id=b11bbddd-523d-4ac4-ac84-dd3085c470f3",
+            "13": "https://cn.eudic.net/ting/openArticle?id=d7fa0ebc-50ac-4d6c-a2a9-c5faf0acdab6",
+            "14": "https://cn.eudic.net/ting/openArticle?id=2299b115-4ff5-4f18-bc64-f38b5f9863c8",
+            "15": "https://cn.eudic.net/ting/openArticle?id=b5ec7d61-3346-47e9-bfbb-8d3f648f546b",
+            "16": "https://cn.eudic.net/ting/openArticle?id=f289291c-9230-4e67-b31b-f97c20a5b3fa",
+            "17": "https://cn.eudic.net/ting/openArticle?id=b0c246e1-3030-4042-b660-682c73fed923",
+            "18": "https://cn.eudic.net/ting/openArticle?id=b3d9feb3-5ac1-45c8-920c-3964a6fb7978",
+            "19": "https://cn.eudic.net/ting/openArticle?id=fd25a0cb-7dca-4d97-bd65-f9f7719ae1e4",
+            "20": "https://cn.eudic.net/ting/openArticle?id=14101c23-c015-412f-859e-9013f1725e67",
+            "21": "https://cn.eudic.net/ting/openArticle?id=d77b64e5-478a-474a-81f4-cd4bd6dd868e",
+            "22": "https://cn.eudic.net/ting/openArticle?id=71401526-4790-4cf4-8463-3d1169ab6cdf",
+            "23": "https://cn.eudic.net/ting/openArticle?id=3890a797-e1ed-465b-acbf-1ce270178bac",
+            "24": "https://cn.eudic.net/ting/openArticle?id=974da495-3618-4bd3-91ae-659bd969feec",
+            "25": "https://cn.eudic.net/ting/openArticle?id=5a48f04c-44f9-47fb-ae6f-3048dd770043",
+            "26": "https://cn.eudic.net/ting/openArticle?id=517e4828-f199-4f9e-927d-435221cf7769",
+            "27": "https://cn.eudic.net/ting/openArticle?id=96e77a1d-a8e5-4f55-b392-84167fac8d75",
+            "28": "https://cn.eudic.net/ting/openArticle?id=c6e1059b-5ade-438f-8e05-6aafa9cba16a",
+            "29": "https://cn.eudic.net/ting/openArticle?id=cd008117-573b-426a-8fd9-37d2da6f9ab8",
+            "30": "https://cn.eudic.net/ting/openArticle?id=cd008117-573b-426a-8fd9-37d2da6f9ab8",
+            "31": "https://cn.eudic.net/ting/openArticle?id=f2d3426e-dc9c-4d91-ba65-657a4f03b0ca",
+            "32": "https://cn.eudic.net/ting/openArticle?id=530a5371-2348-435f-a353-6460d7221b52",
+            "33": "https://cn.eudic.net/ting/openArticle?id=593e3bfb-c074-40c6-ac8f-bdc4642c80fa",
+            "34": "https://cn.eudic.net/ting/openArticle?id=8e5033f7-506c-4729-9e67-2d57e10e8bb3",
+            "35": "https://cn.eudic.net/ting/openArticle?id=1c5f1808-9821-4bb6-a891-02baba5e374a",
+            "36": "https://cn.eudic.net/ting/openArticle?id=0c3dbf66-c7a5-4001-a091-a0236b20a17b"
+        },
+        "Book2": {
+            "37": "https://cn.eudic.net/ting/openArticle?id=b9cbad8b-2695-46db-ad3d-da3bf15e5b5a",
+            "38": "https://cn.eudic.net/ting/openArticle?id=30d1c6bd-9398-4344-9a7e-5a01ed537c3a",
+            "39": "https://cn.eudic.net/ting/openArticle?id=8171d446-c5de-4840-8e48-742ae0157065",
+            "40": "https://cn.eudic.net/ting/openArticle?id=b92f2625-cec6-48fc-b52d-e0b278191945",
+            "41": "https://cn.eudic.net/ting/openArticle?id=72e675ce-6a7e-4699-96fc-db03f49a7342",
+            "42": "https://cn.eudic.net/ting/openArticle?id=cf47f210-7fd8-4948-8a28-4428e01d5b08",
+            "43": "https://cn.eudic.net/ting/openArticle?id=e0992782-159a-48cc-9839-d16ebda9661e",
+            "44": "https://cn.eudic.net/ting/openArticle?id=dff7cb1d-471e-43a7-a748-5186c3429050",
+            "45": "https://cn.eudic.net/ting/openArticle?id=f11b9c7f-610b-4c99-93af-4bd4dc3d0a91",
+            "46": "https://cn.eudic.net/ting/openArticle?id=50ea6989-604f-486a-a504-2482ba246e72",
+            "47": "https://cn.eudic.net/ting/openArticle?id=01b7c7d8-821c-4d27-a8e3-09506292920d",
+            "48": "https://cn.eudic.net/ting/openArticle?id=f5f7f591-926f-4391-a685-c7fb79e39f9b",
+            "49": "https://cn.eudic.net/ting/openArticle?id=fa9909cd-b22d-4432-952e-45c40282f7d2",
+            "50": "https://cn.eudic.net/ting/openArticle?id=36232e67-557e-4ffa-8bda-100b6c58cde8",
+            "51": "https://cn.eudic.net/ting/openArticle?id=0a445823-53b5-40bd-8769-b1e4bf2ea528",
+            "52": "https://cn.eudic.net/ting/openArticle?id=926e4249-c71a-4dfc-b122-b173fa0b4a30",
+            "53": "https://cn.eudic.net/ting/openArticle?id=ee864585-423c-4a7b-b9fe-3c35e5e45bdd",
+            "54": "https://cn.eudic.net/ting/openArticle?id=95f9ebd4-c0a3-4696-91d7-5dc9cd84dcb1",
+            "55": "https://cn.eudic.net/ting/openArticle?id=71a6ec36-06cc-44c6-83a6-8f5072f04d17",
+            "56": "https://cn.eudic.net/ting/openArticle?id=e63d68a1-4837-4443-bfa6-ce0f911b934c",
+            "57": "https://cn.eudic.net/ting/openArticle?id=e11fadd7-bd27-4b96-bc12-45df2fbdfc09",
+            "58": "https://cn.eudic.net/ting/openArticle?id=ef3b606c-4042-456d-8e69-86d71a6252b5",
+            "59": "https://cn.eudic.net/ting/openArticle?id=d50ae617-c296-4a8b-8287-b0ce8408201d",
+            "60": "https://cn.eudic.net/ting/openArticle?id=d1a62878-dada-4f7e-a20a-fb1c6ce1e24c",
+            "61": "https://cn.eudic.net/ting/openArticle?id=7298b154-8363-4b6e-becd-520b1e1254e0",
+            "62": "https://cn.eudic.net/ting/openArticle?id=5ed3cb83-803d-4023-9178-553d9f570d77",
+            "63": "https://cn.eudic.net/ting/openArticle?id=5bc2b251-27f2-4195-b87a-212cc9d27193",
+            "64": "https://cn.eudic.net/ting/openArticle?id=5bc2b251-27f2-4195-b87a-212cc9d27193",
+            "65": "https://cn.eudic.net/ting/openArticle?id=ca402ac1-b518-4b5f-be57-0419fb391a6d",
+            "66": "https://cn.eudic.net/ting/openArticle?id=6bf9bd0f-373b-4904-abf5-528ba7b69d71",
+            "67": "https://cn.eudic.net/ting/openArticle?id=240ad8b6-c73c-4f7c-b60e-63c8cb24022c",
+            "68": "https://cn.eudic.net/ting/openArticle?id=58f06e62-7665-440c-95ba-21011da9d8ac",
+            "69": "https://cn.eudic.net/ting/openArticle?id=7fc74ac5-b224-4a4b-aed5-b33faef054b3",
+            "70": "https://cn.eudic.net/ting/openArticle?id=b45585eb-8634-4653-9ed5-427b694742aa",
+            "71": "https://cn.eudic.net/ting/openArticle?id=0be977ba-738d-4403-9a95-c31d4c4be900",
+            "72": "https://cn.eudic.net/ting/openArticle?id=f054694d-bc4c-4845-9198-01ac96860a1c"
+        }, "Book3": {
+            "73": "https://cn.eudic.net/ting/openArticle?id=2605cec5-7e0f-4f7c-b9bc-3eb30a431f66",
+            "74": "https://cn.eudic.net/ting/openArticle?id=85670616-c8bb-4e1b-8b7a-6225f46bcb9a",
+            "75": "https://cn.eudic.net/ting/openArticle?id=39bb0de6-4795-4cb0-8089-efd95c2b40c2",
+            "76": "https://cn.eudic.net/ting/openArticle?id=3711008c-1c47-4ef6-a895-21dbabaa5d37",
+            "77": "https://cn.eudic.net/ting/openArticle?id=c91c86f7-2cca-4051-8cfc-393062e3b006",
+            "78": "https://cn.eudic.net/ting/openArticle?id=991f4480-a867-48fa-8545-5271402225e5",
+            "79": "https://cn.eudic.net/ting/openArticle?id=0b1933e3-59e7-4573-84e7-f0465717914f",
+            "80": "https://cn.eudic.net/ting/openArticle?id=0c5744d3-4fdf-41c5-b06c-5343544976f8",
+            "81": "https://cn.eudic.net/ting/openArticle?id=f0b3e9f4-ac5b-4e98-bfc1-0f70928ab46e",
+            "82": "https://cn.eudic.net/ting/openArticle?id=94ec8978-bc18-4550-adae-0cbb02c3cdad",
+            "83": "https://cn.eudic.net/ting/openArticle?id=1843d267-2c32-423b-a0bb-94de48b5e18d",
+            "84": "https://cn.eudic.net/ting/openArticle?id=22191665-c09e-4775-a501-daa464e29617",
+            "85": "https://cn.eudic.net/ting/openArticle?id=c3a8d0eb-491c-4f6c-aa29-3cd259abf650",
+            "86": "https://cn.eudic.net/ting/openArticle?id=383b4dcf-e3f6-4df6-8d79-c35ab816368c",
+            "87": "https://cn.eudic.net/ting/openArticle?id=809a0102-20d3-43fd-b89d-e809e4c97200",
+            "88": "https://cn.eudic.net/ting/openArticle?id=b3957254-b8cf-4228-addf-ca0a9acc291c",
+            "89": "https://cn.eudic.net/ting/openArticle?id=933edb88-0288-4c53-90b0-568cda5a5a25",
+            "90": "https://cn.eudic.net/ting/openArticle?id=28d05a5f-9ad7-4525-8478-1d7d38000234",
+            "91": "https://cn.eudic.net/ting/openArticle?id=d2137016-0977-49d6-ace4-f1ef9a63b13f",
+            "92": "https://cn.eudic.net/ting/openArticle?id=50179fe2-74c8-4ac7-bcb1-969dcdacd9a2",
+            "93": "https://cn.eudic.net/ting/openArticle?id=600be521-543b-4df1-9dba-a3eabaa2799b",
+            "94": "https://cn.eudic.net/ting/openArticle?id=93721120-d60f-4b4f-9e1f-d26267d1c81b",
+            "95": "https://cn.eudic.net/ting/openArticle?id=6acbabc1-68ee-4568-a840-df0a33d673cf",
+            "96": "https://cn.eudic.net/ting/openArticle?id=bd551fdd-dec2-4c4e-bb47-b1bd11a72262",
+            "97": "https://cn.eudic.net/ting/openArticle?id=33ca5e24-3913-4bb7-94b0-3f6e01bed2c6",
+            "98": "https://cn.eudic.net/ting/openArticle?id=390b4bec-72c6-438e-8ad6-4bcedc4edfaf",
+            "99": "https://cn.eudic.net/ting/openArticle?id=401832ee-8451-4943-aa9e-487ea746d06c",
+            "100": "https://cn.eudic.net/ting/openArticle?id=7aae30e4-2730-40b9-9fe2-f7b76ddb7413",
+            "101": "https://cn.eudic.net/ting/openArticle?id=b0504019-52f7-4799-a502-c3cc23a2f13b",
+            "102": "https://cn.eudic.net/ting/openArticle?id=069e3b39-1a79-4dbc-8c37-e8baa44992ee",
+            "103": "https://cn.eudic.net/ting/openArticle?id=25857e12-5deb-4ced-baaf-c7a042a6af9e",
+            "104": "https://cn.eudic.net/ting/openArticle?id=1196be4f-7c98-4e21-bee0-9ef6a9396779",
+            "105": "https://cn.eudic.net/ting/openArticle?id=90ea0aac-a794-4b3f-be5f-e4fecf08c046",
+            "106": "https://cn.eudic.net/ting/openArticle?id=95510c7c-8846-406c-853f-d70c29b8a754",
+            "107": "https://cn.eudic.net/ting/openArticle?id=3636b17c-a607-4ee3-acb3-1df43db11d03",
+            "108": "https://cn.eudic.net/ting/openArticle?id=44b66d68-1230-45c6-b4f6-d73d69f042d8"
+        }, "Phrase 1": {}, "Phrase 2": {}, "Appendix": {}
     };
 
     (function init() {
@@ -164,33 +288,15 @@
                 timeLeft--;
                 renderTimer(timeLeft);
             } else {
-                // 倒數 10 分鐘結束
-                clearInterval(timerId);
-                timerId = null;
-                
-                // 準備資訊
+                clearInterval(timerId); timerId = null;
                 const unitInfo = state.bookType === 'vocab' ? `第 ${state.week} 週 (Unit ${state.unit})` : `第 ${state.week} 週`;
-                const msg = `恭喜過關！ 🥳\n\n` +
-                            `🔹 驗證標記：${userIdentifier}\n` +
-                            `📖 教材：${state.bookName}\n` +
-                            `📅 週次：${unitInfo}\n` +
-                            `🎵 內容：${state.currentLabel}\n\n` +
-                            `請截圖此畫面以供查驗。按下確定後將繼續為您計時學習時間。`;
-                
+                const msg = `恭喜過關！ 🥳\n\n🔹 驗證標記：${userIdentifier}\n📖 教材：${state.bookName}\n📅 週次：${unitInfo}\n🎵 內容：${state.currentLabel}\n\n請截圖此畫面以供查驗。按下確定後將繼續為您計時學習時間。`;
                 alert(msg);
-                
-                // 切換至正計時模式
-                isCountDown = false;
-                totalElapsed = 600; // 從 600 秒 (10:00) 開始往上加
-                timerEl.classList.add('timer-count-up');
-                renderTimer(totalElapsed);
+                isCountDown = false; totalElapsed = 600; 
+                timerEl.classList.add('timer-count-up'); renderTimer(totalElapsed);
                 if (!mainAudio.paused) startTimer();
             }
-        } else {
-            // 正計時階段
-            totalElapsed++;
-            renderTimer(totalElapsed);
-        }
+        } else { totalElapsed++; renderTimer(totalElapsed); }
     }
 
     function renderTimer(s) {
@@ -198,7 +304,6 @@
         document.getElementById('countdown').innerText = `${m}:${sec.toString().padStart(2,'0')}`;
     }
 
-    // 教材選擇邏輯
     document.querySelectorAll('.book-btn').forEach(btn => {
         btn.onclick = function() {
             document.querySelectorAll('.book-btn').forEach(b => b.classList.remove('active'));
@@ -214,6 +319,7 @@
             document.getElementById('unitArea').style.display = 'none';
             document.getElementById('contentArea').style.display = 'none';
             document.getElementById('quizletArea').style.display = 'none';
+            document.getElementById('dailyAudioArea').style.display = 'none';
         }
     });
 
@@ -232,9 +338,8 @@
                 group.appendChild(b);
             });
         } else { 
-            state.unit = 0;
-            renderContentBtns(state.week, false); 
-            updateQuizlet('phrase', state.week);
+            state.unit = 0; renderContentBtns(state.week, false);
+            updateExternalLinks('phrase', state.week);
         }
     };
 
@@ -247,41 +352,51 @@
             let fIdx = isVocab ? ((num-((state.startWeek-1)*2+1))*2+(idx+1)) : ((num-state.startWeek)*2+(idx+1));
             b.onclick = () => {
                 playFile(fIdx, b, l);
-                if(isVocab) updateQuizlet(l === '造句單元' ? 'vocab' : 'appendix', num);
+                if(isVocab) updateExternalLinks(l === '造句單元' ? 'vocab' : 'appendix', num);
             };
             group.appendChild(b);
         });
     }
 
-    function updateQuizlet(type, num) {
-        let url = null; let titleText = "";
-        if (type === 'phrase') {
-            url = quizletData[state.bookCode] ? quizletData[state.bookCode][num] : null;
-            titleText = `5. Quizlet 練習 (Week ${num})`;
-        } else if (type === 'appendix') {
-            url = quizletData["Appendix"] ? quizletData["Appendix"][num] : null;
-            titleText = `5. Quizlet 練習 (Appendix ${num})`;
+    // 關鍵修正：同時更新 Quizlet 與 每日英語聽力 [cite: 84-90]
+    function updateExternalLinks(type, num) {
+        let qUrl = null;
+        let aUrl = null;
+        let qTitle = "5. Quizlet 練習";
+        let aTitle = "6. 每日英語聽力";
+
+        if (type === 'appendix') {
+            qUrl = quizletData["Appendix"] ? quizletData["Appendix"][num] : null;
+            aUrl = (dailyAudioData["Appendix"] && dailyAudioData["Appendix"][num]) ? dailyAudioData["Appendix"][num] : null;
+            qTitle += ` (附錄 ${num})`; aTitle += ` (附錄 ${num})`;
         } else {
-            url = quizletData[state.bookCode] ? quizletData[state.bookCode][num] : null;
-            titleText = `5. Quizlet 練習 (Unit ${num})`;
+            qUrl = quizletData[state.bookCode] ? quizletData[state.bookCode][num] : null;
+            aUrl = (dailyAudioData[state.bookCode] && dailyAudioData[state.bookCode][num]) ? dailyAudioData[state.bookCode][num] : null;
+            const label = (type === 'phrase') ? "Week" : "Unit";
+            qTitle += ` (${label} ${num})`; aTitle += ` (${label} ${num})`;
         }
-        if (url) {
-            document.getElementById('quizletTitle').innerText = titleText;
-            document.getElementById('quizletLink').href = url;
-            document.getElementById('quizletArea').style.display = 'block';
-        } else {
-            document.getElementById('quizletArea').style.display = 'none';
-        }
+
+        const qArea = document.getElementById('quizletArea');
+        if (qUrl) {
+            document.getElementById('quizletTitle').innerText = qTitle;
+            document.getElementById('quizletLink').href = qUrl;
+            qArea.style.display = 'block';
+        } else { qArea.style.display = 'none'; }
+
+        const aArea = document.getElementById('dailyAudioArea');
+        if (aUrl) {
+            document.getElementById('dailyAudioTitle').innerText = aTitle;
+            document.getElementById('dailyAudioLink').href = aUrl;
+            aArea.style.display = 'block';
+        } else { aArea.style.display = 'none'; }
     }
 
     function playFile(idx, btn, label) {
         state.fileIdx = idx; state.currentLabel = label;
         if(btn) { Array.from(btn.parentElement.children).forEach(x=>x.classList.remove('active')); btn.classList.add('active'); }
-        const fileName = `${state.bookCode}_${idx.toString().padStart(2, '0')}.mp3`;
-        mainAudio.src = fileName;
+        mainAudio.src = `${state.bookCode}_${idx.toString().padStart(2, '0')}.mp3`;
         document.getElementById('audioTitle').innerText = label;
-        mainAudio.play();
-        document.getElementById('playerSection').style.display = 'block';
+        mainAudio.play(); document.getElementById('playerSection').style.display = 'block';
         resetAB();
     }
 
@@ -312,8 +427,7 @@
     mainAudio.ontimeupdate = () => {
         const c = mainAudio.currentTime, d = mainAudio.duration || 1;
         document.getElementById('progressBar').style.width = (c/d*100)+'%';
-        document.getElementById('currentTime').innerText = fmt(c);
-        document.getElementById('durationTime').innerText = fmt(d);
+        document.getElementById('currentTime').innerText = fmt(c); document.getElementById('durationTime').innerText = fmt(d);
         if(pointA!==null && pointB!==null && c >= Math.max(pointA,pointB)) mainAudio.currentTime = Math.min(pointA,pointB);
     };
 
